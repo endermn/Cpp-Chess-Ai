@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 	};
 
 	
-	Position position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Position position = fen_to_position("8/8/1k6/7r/8/8/8/1K6 w - - 0 1");
 	Position last_position = position;
 
 	auto win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 

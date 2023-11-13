@@ -91,11 +91,11 @@ public:
 		//std::cout << selected_piece_pos.y << " " << next_y << '\n';
 		int double_move_y = selected_piece_color == piece_color::WHITE ? 4 : 3;
 
-		if (selected_piece_pos.x < 7)
+		if (selected_piece_pos.x < 7){
 			if (optional<piece> dst = board[next_y][selected_piece_pos.x + 1];
-			dst.has_value() && dst.value().color != selected_piece_color)
+			dst.has_value() && dst.value().color != selected_piece_color) {
 				bitboard_set(bitboard, { selected_piece_pos.x + 1, next_y});
-			else
+			} else {
 				if (selected_piece_pos.x + 1 == en_passant &&
 					next_y == (selected_piece_color == piece_color::WHITE ? 2 : 5) &&
 					board[selected_piece_pos.y][selected_piece_pos.x + 1].has_value() &&
@@ -103,8 +103,9 @@ public:
 					board[selected_piece_pos.y][selected_piece_pos.x + 1]->color != board[selected_piece_pos.y][selected_piece_pos.x]->color
 					)
 						bitboard_set(bitboard, { selected_piece_pos.x + 1, next_y });
-		
-		if (selected_piece_pos.x > 0)
+			}
+		}
+		if (selected_piece_pos.x > 0) {
 			if (optional<piece> dst = board[next_y][selected_piece_pos.x - 1];
 			dst.has_value() && dst.value().color != selected_piece_color)
 				bitboard_set(bitboard, { selected_piece_pos.x - 1, next_y});
@@ -116,7 +117,7 @@ public:
 				board[selected_piece_pos.y][selected_piece_pos.x - 1]->color != board[selected_piece_pos.y][selected_piece_pos.x]->color
 					)
 					bitboard_set(bitboard, {selected_piece_pos.x - 1, next_y});
-
+		}
 		if (!board[next_y][selected_piece_pos.x].has_value()) {
 			if (!board[double_move_y][selected_piece_pos.x].has_value())
 				if (selected_piece_pos.y == (selected_piece_color == piece_color::WHITE ? 6 : 1))
@@ -292,10 +293,6 @@ public:
 				piece src_piece = board[y][x].value();
 				if (src_piece.type == piece_type::KING)
 				{
-					//if(src_piece.color == piece_color::BLACK)
-					//	eval += sqrt(pow(abs(king_positions[0].x - king_positions[1].x), 2) + pow(abs(king_positions[0].y - king_positions[1].y), 2));
-					if (phase == game_phase::ENDGAME)
-						eval += src_piece.color == piece_color::BLACK ? piece_square_king_eg[y][x] : -piece_square_king_eg[y][x];
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 				}
 						
@@ -305,6 +302,8 @@ public:
 		}
 
 		eval += (-2 * bool(turn) + 1) * 0.01 * (mobility_score[turn == piece_color::BLACK ? 1 : 0] - mobility_score[turn == piece_color::BLACK ? 0 : 1]);
+
+		eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
 		return eval;
 	}
 
@@ -357,7 +356,7 @@ public:
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
 					if (!new_position.is_under_check(turn)) {
-						float eval = -new_position.negamax(INT_MIN + 1, INT_MAX, static_cast<int>(get_game_phase()) + depth - 1, static_cast<piece_color>(!static_cast<bool>(turn)));
+						float eval = -new_position.negamax(-1e9, 1e9, static_cast<int>(get_game_phase()) + depth - 1, static_cast<piece_color>(!static_cast<bool>(turn)));
 						if (eval > max) {
 							max = eval;
 							best_moves = { {dst_pos, {x, y}} };

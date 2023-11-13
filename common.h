@@ -109,6 +109,11 @@ void draw(SDL_Renderer* rend, BOARD const &board, uint64_t bitboard) {
 	SDL_RenderPresent(rend);
 }
 
+int get_color_value(piece_color color) {
+    return color == piece_color::BLACK ? -1 : 1;
+}
+
+
 piece_type promote_message(SDL_Window* win) {
 	int buttonid = 0;
 
