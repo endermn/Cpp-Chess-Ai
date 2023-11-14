@@ -139,7 +139,7 @@ static constexpr int piece_goodness[2][6][8][8] = {
 	},
 };
 
-static float get_piece_value(piece_type piece) {
+static float get_piece_value(piece_type type) {
 	float piece_values[6] = {
 		200,
 		9.5,
@@ -148,5 +148,5 @@ static float get_piece_value(piece_type piece) {
 		5.63,
 		1,
 	};
-	return piece_values[static_cast<int>(piece)];
+	return piece_values[int(type)];
 }

@@ -256,27 +256,80 @@ public:
 		return mobility_score;
 	}
 
+	// float evaluate() const{
+	// 	float eval = 0;
+
+		
+	// 	std::array<std::array<int, 8>, 8> piece_square_king_eg = {
+	// 		{
+	// 			{100, 70, 30, 30, 30, 30, 70, 100},
+	// 			{},
+	// 			{},
+	// 			{},
+	// 			{},
+	// 			{},
+	// 			{},
+	// 			{100, 70, 30, 30, 30, 30, 70, 100},
+	// 		}
+	// 	};
+
+	// 	std::array<int, 2> mobility_score = targetted_squares_count();
+	// 	game_phase phase = get_game_phase();
+
+	// 	std::array<optional<board_pos>, 2> king_positions;
+
+	// 	for (int y = 0; y < board.size(); y++) {
+	// 		for (int x = 0; x < board[y].size(); x++) {
+	// 			if (!board[y][x].has_value())
+	// 				continue;
+
+	// 			piece src_piece = board[y][x].value();
+	// 			if (src_piece.type == piece_type::KING)
+	// 				king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
+
+						
+	// 			eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+	// 			eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type);
+	// 		}
+	// 	}
+
+	// 	eval += 0.01 * (mobility_score[0] - mobility_score[1]);
+	// 	if(phase == game_phase::ENDGAME)
+	// 		if(king_positions[0].has_value() && king_positions[1].has_value())
+	// 			eval *= 3./std::max(abs(king_positions[0]->x - king_positions[1]->x), abs(king_positions[0]->y - king_positions[1]->y)) + 1;
+			
+				
+	// 	return eval;
+	// }
 	float evaluate() const{
 		float eval = 0;
+		float array_of_values[6] = {
+			200,
+			9.5,
+			3.33,
+			3.05,
+			5.63,
+			1,
+		};
 
 		
 		std::array<std::array<int, 8>, 8> piece_square_king_eg = {
 			{
-				{100, 70, 30, 30, 30, 30, 70, 100},
-				{},
-				{},
-				{},
-				{},
-				{},
-				{},
-				{100, 70, 30, 30, 30, 30, 70, 100},
+				{80, 70, 30, 30, 30, 30, 70, 80},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{30, 0, 0, 0, 0, 0, 0, 30},
+				{80, 70, 30, 30, 30, 30, 70, 80},
 			}
 		};
 
 		std::array<int, 2> mobility_score = targetted_squares_count();
 		game_phase phase = get_game_phase();
 
-		std::array<optional<board_pos>, 2> king_positions;
+		std::array<board_pos, 2> king_positions;
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -285,20 +338,21 @@ public:
 
 				piece src_piece = board[y][x].value();
 				if (src_piece.type == piece_type::KING)
+				{
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
-
+				}
 						
 				eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
-				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type);
+				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
 		}
 
 		eval += 0.01 * (mobility_score[0] - mobility_score[1]);
-		if(phase == game_phase::ENDGAME)
-			if(king_positions[0].has_value() && king_positions[1].has_value())
-				eval *= 3./std::max(abs(king_positions[0]->x - king_positions[1]->x), abs(king_positions[0]->y - king_positions[1]->y)) + 1;
-			
-				
+		eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+		// if(phase == game_phase::ENDGAME)
+		// if(king_positions[0].has_value() && king_positions[1].has_value())
+		// 	eval *= 3/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
+		
 		return eval;
 	}
 
