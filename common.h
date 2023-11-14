@@ -11,6 +11,9 @@
 #include <utility>
 #include <functional>
 #include <span>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -85,6 +88,8 @@ void bitboard_set(uint64_t& bitboard, board_pos pos) {
 bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
 }
+
+
 
 void draw(SDL_Renderer* rend, BOARD const &board, uint64_t bitboard) {
 	bool is_white = true;

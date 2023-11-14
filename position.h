@@ -196,6 +196,7 @@ public:
 		}
 		board[target.y][target.x] = src_piece;
 		board[selected_piece_pos.y][selected_piece_pos.x] = std::nullopt;
+		turn = piece_color(!bool(turn));
 	}
 
 	uint64_t get_moves(board_pos src_pos) const {
@@ -321,11 +322,10 @@ public:
 		return bitboard_get(targetted_squares, king_pos);
 	}
 
-	void ai_move(piece_color turn) {
+	move ai_move() const {
 		std::vector<move> best_moves;
 		best_moves.reserve(4);
 		size_t best_moves_size = 0;
-		int depth = 2;
 		array<int, 3> game_phase_depth = {2, 2, 4}; 
 		float max = INT_MIN;
 
@@ -356,10 +356,11 @@ public:
 					}
 				}
 			}
+
 		}
 		std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
 		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
-		make_move(best_moves[selected_move].dst_pos, best_moves[selected_move].src_pos, nullptr);
+		return best_moves[selected_move];
 	}
 
 	void order_moves(std::vector<move>& moves) const {
