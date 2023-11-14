@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
 	};
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// Position position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1");
-	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	thread_sync sync = {.position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 	Position last_position = sync.position;
 
 	auto win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
@@ -104,8 +105,12 @@ int main(int argc, char* argv[]) {
 							// position.ai_move(piece_color(!bool(position.turn)));
 							
 							sync.is_thinking = true;
+
+							// ai_thread_func(&sync);
+
 							ai_move_thread = std::thread(ai_thread_func, &sync);							
 							ai_move_thread.detach();
+
 							//turn = piece_color(!bool(turn));
 						}
 
@@ -124,7 +129,7 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 		}
-		std::lock_guard<std::mutex> lock(sync.mutex);
+		// std::lock_guard<std::mutex> lock(sync.mutex);
 		draw(rend, sync.position.board, possible_moves);
 	}
 	SDL_DestroyRenderer(rend);

@@ -288,7 +288,7 @@ public:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 
 						
-				eval += src_piece.color == piece_color::BLACK ? -0.01 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][7 - y][x] : 0.01 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][y][x];
+				eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type);
 			}
 		}
