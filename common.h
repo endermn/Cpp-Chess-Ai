@@ -32,9 +32,9 @@ enum class castle_side : bool {
 	LONG,
 };
 enum class game_phase : int8_t {
-	OPENING = -1,
-	MIDGAME = 0,
-	ENDGAME = 2,
+	OPENING,
+	MIDGAME,
+	ENDGAME,
 };
 enum class piece_type : uint8_t {
 	KING,

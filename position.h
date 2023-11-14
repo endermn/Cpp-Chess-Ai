@@ -255,16 +255,8 @@ public:
 		return mobility_score;
 	}
 
-	float evaluate(piece_color turn) const{
+	float evaluate() const{
 		float eval = 0;
-		float array_of_values[6] = {
-			200,
-			9.5,
-			3.33,
-			3.05,
-			5.63,
-			1,
-		};
 
 		
 		std::array<std::array<int, 8>, 8> piece_square_king_eg = {
@@ -283,7 +275,7 @@ public:
 		std::array<int, 2> mobility_score = targetted_squares_count();
 		game_phase phase = get_game_phase();
 
-		std::array<board_pos, 2> king_positions;
+		std::array<optional<board_pos>, 2> king_positions;
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -292,32 +284,23 @@ public:
 
 				piece src_piece = board[y][x].value();
 				if (src_piece.type == piece_type::KING)
-				{
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
-				}
+
 						
 				eval += src_piece.color == piece_color::BLACK ? -0.01 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][7 - y][x] : 0.01 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][y][x];
-				eval += src_piece.color == piece_color::BLACK ? -array_of_values[int(src_piece.type)] : array_of_values[int(src_piece.type)];
+				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type);
 			}
 		}
 
-		eval += (-2 * bool(turn) + 1) * 0.01 * (mobility_score[turn == piece_color::BLACK ? 1 : 0] - mobility_score[turn == piece_color::BLACK ? 0 : 1]);
-
-		eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+		eval += 0.01 * (mobility_score[0] - mobility_score[1]);
+		if(phase == game_phase::ENDGAME)
+			if(king_positions[0].has_value() && king_positions[1].has_value())
+				eval *= 3./std::max(abs(king_positions[0]->x - king_positions[1]->x), abs(king_positions[0]->y - king_positions[1]->y)) + 1;
+			
+				
 		return eval;
 	}
 
-	float get_piece_value(piece_type piece) {
-		float array_of_values[6] = {
-			200,
-			9.5,
-			3.33,
-			3.05,
-			5.63,
-			1,
-		};
-		return array_of_values[static_cast<int>(piece)];
-	}
 	
 	bool is_under_check(piece_color color) {
 		uint64_t targetted_squares = 0;
@@ -340,7 +323,10 @@ public:
 
 	void ai_move(piece_color turn) {
 		std::vector<move> best_moves;
+		best_moves.reserve(4);
+		size_t best_moves_size = 0;
 		int depth = 2;
+		array<int, 3> game_phase_depth = {2, 2, 4}; 
 		float max = INT_MIN;
 
 		for (int y = 0; y < board.size(); y++) {
@@ -356,32 +342,24 @@ public:
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
 					if (!new_position.is_under_check(turn)) {
-						float eval = -new_position.negamax(-1e9, 1e9, static_cast<int>(get_game_phase()) + depth - 1, static_cast<piece_color>(!static_cast<bool>(turn)));
+						float eval = -new_position.negamax(-1e9, 1e9, game_phase_depth[int(get_game_phase())], static_cast<piece_color>(!static_cast<bool>(turn)));
 						if (eval > max) {
 							max = eval;
-							best_moves = { {dst_pos, {x, y}} };
+							best_moves.clear();
+							best_moves.push_back({ dst_pos, {x, y} });
+							best_moves_size = std::max(best_moves.size(), best_moves_size);
 						}
 						else if (eval == max) {
 							best_moves.push_back({ dst_pos, {x, y} });
+							best_moves_size = std::max(best_moves.size(), best_moves_size);
 						}
 					}
 				}
 			}
 		}
-
-		int random = std::rand() % best_moves.size();
-		make_move(best_moves[random].dst_pos, best_moves[random].src_pos, nullptr);
-	}
-	float get_piece_value(piece_type type) const{
-		float array_of_values[6] = {
-			200,
-			9.5,
-			3.33,
-			3.05,
-			5.63,
-			1,
-		};
-		return array_of_values[int(type)];
+		std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
+		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
+		make_move(best_moves[selected_move].dst_pos, best_moves[selected_move].src_pos, nullptr);
 	}
 
 	void order_moves(std::vector<move>& moves) const {
@@ -409,8 +387,7 @@ public:
 	}
 
 	float search_captures(float alpha, float beta, piece_color turn) const {
-		float eval = turn == piece_color::BLACK ? -evaluate(turn) : evaluate(turn);
-		//float eval = evaluate(turn);
+		float eval = get_color_value(turn) * evaluate();
 		if (eval >= beta)
 			return beta;
 		alpha = std::max(eval, alpha);
