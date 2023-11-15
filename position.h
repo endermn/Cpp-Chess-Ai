@@ -342,13 +342,14 @@ public:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 				}
 						
-				eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
 		}
 
 		eval += 0.01 * (mobility_score[0] - mobility_score[1]);
-		eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+		if(phase == game_phase::ENDGAME)
+			eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
 		// 	eval *= 3/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
