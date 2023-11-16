@@ -303,28 +303,6 @@ public:
 	// }
 	float evaluate() const{
 		float eval = 0;
-		float array_of_values[6] = {
-			200,
-			9.5,
-			3.33,
-			3.05,
-			5.63,
-			1,
-		};
-
-		
-		std::array<std::array<int, 8>, 8> piece_square_king_eg = {
-			{
-				{80, 70, 30, 30, 30, 30, 70, 80},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{30, 0, 0, 0, 0, 0, 0, 30},
-				{80, 70, 30, 30, 30, 30, 70, 80},
-			}
-		};
 
 		std::array<int, 2> mobility_score = targetted_squares_count();
 		game_phase phase = get_game_phase();
@@ -337,19 +315,22 @@ public:
 					continue;
 
 				piece src_piece = board[y][x].value();
+
 				if (src_piece.type == piece_type::KING)
 				{
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 				}
-						
-				eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				// TODO: Fix evaluation from the piece square table
+				eval += get_color_value(src_piece.color) * 0.001 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
 		}
 
 		eval += 0.01 * (mobility_score[0] - mobility_score[1]);
+
 		if(phase == game_phase::ENDGAME)
 			eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+		
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
 		// 	eval *= 3/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
@@ -442,7 +423,9 @@ public:
 
 	}
 
-	float search_captures(float alpha, float beta, piece_color turn) const {
+
+
+	float search_captures(float alpha, float beta) const {
 		float eval = get_color_value(turn) * evaluate();
 		if (eval >= beta)
 			return beta;
@@ -458,7 +441,7 @@ public:
 				while (move_bitboard != 0) {
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
-					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
+					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 					if (board[dst_pos.y][dst_pos.x].has_value())
 						moves.push_back({ dst_pos, { x, y }, true });
 				}
@@ -469,9 +452,12 @@ public:
 		for (int i = 0; i < moves.size(); i++) {
 			Position new_position = *this;
 			new_position.make_move(moves[i].dst_pos, moves[i].src_pos, nullptr);
-			eval = -new_position.search_captures(-beta, -alpha, piece_color(!bool(turn)));
+			eval = -new_position.search_captures(-beta, -alpha);
+			// eval = -new_position.evaluate();
 			if (eval >= beta)
 				return beta;
+			// if(eval > alpha)
+			// 	alpha = eval;
 			alpha = std::max(eval, alpha);
 		}
 
@@ -480,7 +466,7 @@ public:
 
 	float negamax(float alpha, float beta, int depth, piece_color turn) const {
 		if (depth == 0)
-			return search_captures(-beta, -alpha, turn);
+			return search_captures(-beta, -alpha);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
 
 		for (int y = 0; y < board.size(); y++) {
