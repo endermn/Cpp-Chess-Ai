@@ -274,7 +274,7 @@ public:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 				}
 				// TODO: Fix evaluation from the piece square table
-				eval += get_color_value(src_piece.color) * 0.001 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
 				
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
