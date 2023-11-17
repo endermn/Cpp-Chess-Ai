@@ -304,7 +304,6 @@ public:
 	float evaluate() const{
 		float eval = 0;
 
-		std::array<int, 2> mobility_score = targetted_squares_count();
 		game_phase phase = get_game_phase();
 
 		std::array<board_pos, 2> king_positions;
@@ -322,15 +321,17 @@ public:
 				}
 				// TODO: Fix evaluation from the piece square table
 				eval += get_color_value(src_piece.color) * 0.001 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
 		}
 
-		eval += 0.01 * (mobility_score[0] - mobility_score[1]);
 
-		if(phase == game_phase::ENDGAME)
+		if(phase == game_phase::ENDGAME){
+			std::array<int, 2> mobility_score = targetted_squares_count();
+			eval += 0.001 * (mobility_score[0] - mobility_score[1]);
 			eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
-		
+		}
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
 		// 	eval *= 3/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
@@ -409,6 +410,8 @@ public:
 			{
 				capture_piece_type = board[new_move.dst_pos.y][new_move.dst_pos.x]->type;
 				move_score += 10 * (get_piece_value(capture_piece_type.value()) - get_piece_value(move_piece_type));
+				if(capture_piece_type == piece_type::KING)
+					move_score += 10000;
 			}
 
 			if (move_piece_type == piece_type::PAWN && (new_move.dst_pos.y == 0 || new_move.dst_pos.y == 7)) {
@@ -416,7 +419,7 @@ public:
 			}
 			new_move.score = move_score;
 		}
-		//moves.erase(std::remove(moves.begin(), moves.end(), 0), moves.end());
+		// moves.erase(std::remove(moves.begin(), moves.end(), 0), moves.end());
 		std::sort(moves.begin(), moves.end(), [](const move& a, const move& b) {
 			return a.score > b.score;
 		});
@@ -465,8 +468,9 @@ public:
 	}
 
 	float negamax(float alpha, float beta, int depth, piece_color turn) const {
+		float best_score = -10000000;
 		if (depth == 0)
-			return search_captures(-beta, -alpha);
+			return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
 
 		for (int y = 0; y < board.size(); y++) {
@@ -485,6 +489,7 @@ public:
 					if (eval >= beta)
 						return beta;
 					alpha = std::max(alpha, eval);
+
 				}
 			}
 		}

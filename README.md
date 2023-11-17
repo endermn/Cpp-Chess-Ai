@@ -6,12 +6,12 @@ Gefish is a cool chess engine.
 - [Copying.txt](Copying.txt), a text file containing the GNU General Public License version 3.
 - [src](src), a subdirectory containing the full source code 
 ## Requirements
-- SDL2 >= 2.26.3 
+- SDL2 >= 2.26.3
 - SDL2_Image
 - 64/32-bit system
-- linux
+- Linux
 ## Compiling Gefish on Linux
-Make sure the [requirement packages](#requirements) are installed
+Make sure the [required packages](#requirements) are installed
 
 Run `./build.sh` in this directory
 ## Terms of use
