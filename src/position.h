@@ -13,21 +13,21 @@ public:
 			board_pos dst = { i.x + selected_piece_pos.x , i.y + selected_piece_pos.y };
 			if (dst.is_valid() && (!board[dst.y][dst.x].has_value() || board[dst.y][dst.x].value().color != src_color))
 				bitboard_set(bitboard, dst);
-			if (can_castle[int(src_color)][int(castle_side::SHORT)]) {
-				board_pos dst_castle = { 6, selected_piece_pos.y };
-				if (board[dst_castle.y][7] == piece{.color = src_color, .type = piece_type::ROOK } &&
-					!board[selected_piece_pos.y][5].has_value() &&
-					!board[selected_piece_pos.y][6].has_value())
-					bitboard_set(bitboard, dst_castle);
-			}
-			if (can_castle[int(src_color)][int(castle_side::LONG)]) {
-				board_pos dst_castle = { 2, selected_piece_pos.y };
-				if (board[dst_castle.y][0] == piece{ .color = src_color, .type = piece_type::ROOK } &&
-					!board[selected_piece_pos.y][1].has_value() &&
-					!board[selected_piece_pos.y][2].has_value() &&
-					!board[selected_piece_pos.y][3].has_value())
-					bitboard_set(bitboard, dst_castle);
-			}
+		}
+		if (can_castle[int(src_color)][int(castle_side::SHORT)]) {
+			board_pos dst_castle = { 6, selected_piece_pos.y };
+			if (board[dst_castle.y][7] == piece{.color = src_color, .type = piece_type::ROOK } &&
+				!board[selected_piece_pos.y][5].has_value() &&
+				!board[selected_piece_pos.y][6].has_value())
+				bitboard_set(bitboard, dst_castle);
+		}
+		if (can_castle[int(src_color)][int(castle_side::LONG)]) {
+			board_pos dst_castle = { 2, selected_piece_pos.y };
+			if (board[dst_castle.y][0] == piece{ .color = src_color, .type = piece_type::ROOK } &&
+				!board[selected_piece_pos.y][1].has_value() &&
+				!board[selected_piece_pos.y][2].has_value() &&
+				!board[selected_piece_pos.y][3].has_value())
+				bitboard_set(bitboard, dst_castle);
 		}
 		return bitboard;
 	}
@@ -255,52 +255,6 @@ public:
 		}
 		return mobility_score;
 	}
-
-	// float evaluate() const{
-	// 	float eval = 0;
-
-		
-	// 	std::array<std::array<int, 8>, 8> piece_square_king_eg = {
-	// 		{
-	// 			{100, 70, 30, 30, 30, 30, 70, 100},
-	// 			{},
-	// 			{},
-	// 			{},
-	// 			{},
-	// 			{},
-	// 			{},
-	// 			{100, 70, 30, 30, 30, 30, 70, 100},
-	// 		}
-	// 	};
-
-	// 	std::array<int, 2> mobility_score = targetted_squares_count();
-	// 	game_phase phase = get_game_phase();
-
-	// 	std::array<optional<board_pos>, 2> king_positions;
-
-	// 	for (int y = 0; y < board.size(); y++) {
-	// 		for (int x = 0; x < board[y].size(); x++) {
-	// 			if (!board[y][x].has_value())
-	// 				continue;
-
-	// 			piece src_piece = board[y][x].value();
-	// 			if (src_piece.type == piece_type::KING)
-	// 				king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
-
-						
-	// 			eval += get_color_value(src_piece.color) * 0.1 * piece_goodness[phase == game_phase::OPENING ? 0 : 1][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
-	// 			eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type);
-	// 		}
-	// 	}
-
-	// 	eval += 0.01 * (mobility_score[0] - mobility_score[1]);
-	// 	if(phase == game_phase::ENDGAME)
-	// 		if(king_positions[0].has_value() && king_positions[1].has_value())
-	// 			eval *= 3./std::max(abs(king_positions[0]->x - king_positions[1]->x), abs(king_positions[0]->y - king_positions[1]->y)) + 1;
-			
-				
-	// 	return eval;
-	// }
 	float evaluate() const{
 		float eval = 0;
 

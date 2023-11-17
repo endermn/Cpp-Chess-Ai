@@ -26,6 +26,7 @@ const int SQUARE_SIZE = 75;
 
 SDL_Texture* pieces_image;
 
+
 enum class piece_color : bool {
 	WHITE,
 	BLACK,
@@ -48,7 +49,6 @@ enum class piece_type : uint8_t {
 	PAWN,
 };
 
-
 struct board_pos {
 	int x;
 	int y;
@@ -57,7 +57,6 @@ struct board_pos {
 	}
 	friend bool operator==(board_pos, board_pos) = default;
 };
-
 struct piece {
 	piece_color color;
 	piece_type type;
@@ -89,30 +88,6 @@ bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
 }
 
-
-
-void draw(SDL_Renderer* rend, BOARD const &board, uint64_t bitboard) {
-	bool is_white = true;
-	for (int y = 0; y < 8; y++) {
-		for (int x = 0; x < 8; x++) {
-			is_white ? SDL_SetRenderDrawColor(rend, 255, 255, 255, 255) : SDL_SetRenderDrawColor(rend, 53, 173, 107, 255);
-			if(x != 7)
-			is_white = !is_white;
-			SDL_Rect dst_rect = {x, y, 1, 1};
-			SDL_RenderFillRect(rend, &dst_rect);
-			if (bitboard_get(bitboard, { x, y }))
-			{
-				SDL_SetRenderDrawColor(rend, 200, 100, 100, 130);
-				SDL_RenderFillRect(rend, &dst_rect);
-			}
-			if (board[y][x].has_value()) {
-				SDL_Rect src_rect = {int(board[y][x].value().type) * 200, int(board[y][x].value().color) * 200, 200, 200};
-				SDL_RenderCopy(rend, pieces_image, &src_rect, &dst_rect);
-			}
-		}
-	}
-	SDL_RenderPresent(rend);
-}
 
 int get_color_value(piece_color color) {
     return color == piece_color::BLACK ? -1 : 1;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "draw.h"
 #include "piece_goodness.h"
 #include "position.h"
 #include "fen.h"
