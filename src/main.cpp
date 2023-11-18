@@ -3,25 +3,7 @@
 #include "piece_goodness.h"
 #include "position.h"
 #include "fen.h"
-
-struct thread_sync {
-	Position position;
-	std::mutex mutex;	
-	std::atomic<bool> is_thinking;
-};
-
-void ai_thread_func(thread_sync *sync) {
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-	move best_move = sync->position.ai_move();
-	std::lock_guard<std::mutex> lock(sync->mutex);
-	sync->position.make_move(best_move.dst_pos, best_move.src_pos, nullptr);
-	sync->is_thinking = false;
-	
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << '\n';
-} 
+#include "threads.h"
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -52,9 +34,10 @@ int main(int argc, char* argv[]) {
 	};
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// thread_sync sync = {.position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1")};
-	thread_sync sync = {.position = fen_to_position("rnbqkb1r/pppppppp/5n2/8/8/2N5/PPPPPPPP/R1BQKBNR w KQkq - 0 1")};
-	Position last_position = sync.position;
+	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
+	std::vector<Position> last_positions;
+	
 	auto win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		SQUARE_SIZE * 8, SQUARE_SIZE * 8, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
 	auto rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -69,17 +52,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	SDL_ShowWindow(win);
-	bool run = true;
 	uint64_t possible_moves = 0;
 	optional<board_pos> src_pos;
 
-	while (run) {
+	while (true) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type){
 			case SDL_QUIT:
-				run = false;
-				break;
+				exit(0);
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT && !sync.is_thinking) {
 					board_pos pos = { event.button.x, event.button.y};
@@ -89,7 +70,7 @@ int main(int argc, char* argv[]) {
 						std::lock_guard<std::mutex> lock(sync.mutex);
 						if (sync.position.board[pos.y][pos.x].has_value())
 						{
-							if (sync.position.turn == sync.position.board[pos.y][pos.x].value().color)
+							if (sync.position.turn == sync.position.board[pos.y][pos.x]->color)
 							{
 								src_pos = pos;
 								possible_moves = sync.position.get_moves(pos);
@@ -100,7 +81,7 @@ int main(int argc, char* argv[]) {
 						if (bitboard_get(possible_moves, pos))
 						{
 							std::lock_guard<std::mutex> lock(sync.mutex);
-							last_position = sync.position;
+							last_positions.push_back(sync.position);
 							sync.position.make_move(pos, src_pos.value(), win);
 							// position.ai_move(piece_color(!bool(position.turn)));
 							
@@ -120,10 +101,14 @@ int main(int argc, char* argv[]) {
 					}
 				}
 				break;
+
 			case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_LEFT && !sync.is_thinking)
 				{
-					sync.position = last_position;
+					if(last_positions.size() > 0) {
+						sync.position = last_positions.back();
+						last_positions.pop_back();
+					}
 					//position.turn = piece_color(!bool(position.turn));
 				}
 				break;
@@ -132,6 +117,7 @@ int main(int argc, char* argv[]) {
 		// std::lock_guard<std::mutex> lock(sync.mutex);
 		draw(rend, sync.position.board, possible_moves);
 	}
+
 	SDL_DestroyRenderer(rend);
 	SDL_DestroyWindow(win);
 	IMG_Quit();

@@ -127,6 +127,26 @@ public:
 
 		return bitboard;
 	}
+
+	uint64_t get_moves(board_pos src_pos) const {
+		switch (board[src_pos.y][src_pos.x].value().type) {
+		case piece_type::KING:
+			return king_moves(src_pos);
+		case piece_type::QUEEN:
+			return queen_moves(src_pos);
+		case piece_type::BISHOP:
+			return bishop_moves(src_pos);
+		case piece_type::KNIGHT:
+			return knight_moves(src_pos);
+		case piece_type::ROOK:
+			return rook_moves(src_pos);
+		case piece_type::PAWN:
+			return pawn_moves(src_pos);
+		default:
+			std::unreachable();
+		}
+	}
+
 	void make_move(board_pos target, board_pos selected_piece_pos, SDL_Window* win) {
 		piece src_piece = board[selected_piece_pos.y][selected_piece_pos.x].value();
 
@@ -199,24 +219,6 @@ public:
 		turn = piece_color(!bool(turn));
 	}
 
-	uint64_t get_moves(board_pos src_pos) const {
-		switch (board[src_pos.y][src_pos.x].value().type) {
-		case piece_type::KING:
-			return king_moves(src_pos);
-		case piece_type::QUEEN:
-			return queen_moves(src_pos);
-		case piece_type::BISHOP:
-			return bishop_moves(src_pos);
-		case piece_type::KNIGHT:
-			return knight_moves(src_pos);
-		case piece_type::ROOK:
-			return rook_moves(src_pos);
-		case piece_type::PAWN:
-			return pawn_moves(src_pos);
-		default:
-			std::unreachable();
-		}
-	}
 	game_phase get_game_phase() const{
 		int total_pieces = 0;
 		int total_major_pieces = 0;
@@ -255,6 +257,7 @@ public:
 		}
 		return mobility_score;
 	}
+
 	float evaluate() const{
 		float eval = 0;
 
@@ -273,7 +276,7 @@ public:
 				{
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 				}
-				// TODO: Fix evaluation from the piece square table
+
 				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
 				
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
