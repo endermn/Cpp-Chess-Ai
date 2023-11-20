@@ -293,7 +293,7 @@ public:
 		if(phase == game_phase::ENDGAME){
 			std::array<int, 2> mobility_score = targetted_squares_count();
 			eval += 0.001 * (mobility_score[0] - mobility_score[1]);
-			eval *= 3/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+			eval *= 3.f/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
 		}
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
