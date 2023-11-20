@@ -4,7 +4,7 @@ struct thread_sync {
 	std::atomic<bool> is_thinking;
 };
 
-void ai_thread_func(thread_sync *sync) {
+void engine_thread_func(thread_sync *sync) {
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -16,3 +16,19 @@ void ai_thread_func(thread_sync *sync) {
 	auto stop = std::chrono::high_resolution_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << '\n';
 } 
+void rollback_position(std::vector<Position>& last_positions, uint64_t& possible_moves, optional<board_pos>& src_pos, thread_sync& sync) {
+	if(last_positions.size() > 0) {
+		possible_moves = 0;
+		src_pos = std::nullopt;
+		sync.position = last_positions.back();
+		last_positions.pop_back();
+	}
+}
+
+void play_engine(thread_sync& sync, std::thread& ai_move_thread) {
+	// ai_thread_func(&sync);
+	sync.is_thinking = true;
+	std::cout << "thinking.. \n";
+	ai_move_thread = std::thread(engine_thread_func, &sync);							
+	ai_move_thread.detach();
+}
