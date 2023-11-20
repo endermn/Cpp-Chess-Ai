@@ -1,6 +1,6 @@
 # Gefish
 ## Overview
-Gefish is a cool chess engine.
+Introducing Gefish, a cutting-edge chess artificial intelligence that stands at the forefront of strategic brilliance and computational prowess. Born from the fusion of genius algorithms and advanced machine learning, Gefish has elevated the game of chess to new heights, leaving a trail of awe and admiration in its wake.
 ## Files
 - [README.md](#files), the file you're currently reading
 - [Copying.txt](Copying.txt), a text file containing the GNU General Public License version 3.
