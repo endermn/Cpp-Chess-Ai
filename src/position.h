@@ -271,10 +271,16 @@ public:
 					continue;
 
 				piece src_piece = board[y][x].value();
-
-				if (src_piece.type == piece_type::KING)
-				{
+				switch(src_piece.type) {
+				case piece_type::KING:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
+					break;
+				case piece_type::PAWN:
+					if (board[y + get_color_value(src_piece.color)][x]->type == board[y][x]->type)
+						eval -= get_color_value(src_piece.color) * 0.1f;
+					break;
+				default:
+					break;
 				}
 
 				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
@@ -352,7 +358,7 @@ public:
 			}
 
 		}
-		std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
+		// std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
 		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
 		return best_moves[selected_move];
 	}
