@@ -106,6 +106,8 @@ int main(int argc, char* argv[]) {
 				if (event.key.keysym.sym == SDLK_LEFT && !sync.is_thinking)
 				{
 					if(last_positions.size() > 0) {
+						possible_moves = 0;
+						src_pos = std::nullopt;
 						sync.position = last_positions.back();
 						last_positions.pop_back();
 					}
