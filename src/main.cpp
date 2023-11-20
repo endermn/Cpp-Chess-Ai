@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 	};
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// thread_sync sync = {.position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1")};
-	thread_sync sync = {.position = fen_to_position("r2qkbnr/p1pppppp/1p6/4Nb2/1nB5/8/PPPPPPPP/RNBQK2R b KQkq - 0 1")};
+	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	std::vector<Position> last_positions;
 	
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	SDL_ShowWindow(win);
 	uint64_t possible_moves = 0;
 	optional<board_pos> src_pos;
-	piece_color engine_color = piece_color::BLACK;
+	piece_color engine_color = piece_color::WHITE;
 	if(sync.position.turn == engine_color) {
 		sync.is_thinking = true;
 
