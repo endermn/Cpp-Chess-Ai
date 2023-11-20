@@ -7,9 +7,7 @@ Position fen_to_position(std::string fen) {
 	umap['q'] = piece_type::QUEEN;
 	umap['k'] = piece_type::KING;
 	umap['p'] = piece_type::PAWN;
-	Position position = {
-		.can_castle = { { { {false, false} } , { {false, false} } } },
-	};
+	Position position;
 	bool after_board = false;
 
 	int x = 0, y = 0;

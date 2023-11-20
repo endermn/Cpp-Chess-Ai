@@ -1,6 +1,7 @@
 #include "common.h"
 #include "draw.h"
 #include "piece_goodness.h"
+#include "piece_moves.h"
 #include "position.h"
 #include "fen.h"
 #include "threads.h"
