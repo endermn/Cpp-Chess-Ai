@@ -33,15 +33,18 @@ enum class piece_color : bool {
 	WHITE,
 	BLACK,
 };
+
 enum class castle_side : bool {
 	SHORT,
 	LONG,
 };
+
 enum class game_phase : int8_t {
 	OPENING,
 	MIDGAME,
 	ENDGAME,
 };
+
 enum class piece_type : uint8_t {
 	KING,
 	QUEEN,
@@ -55,7 +58,6 @@ struct zobrist_value {
 	float evaluation;
 	int depth;
 };
-
 
 struct board_pos {
 	int x;
@@ -78,15 +80,17 @@ struct move {
 	float score = 0;
 };
 
-
 namespace piece_offsets {
 	board_pos BISHOP[4] = {{-1,-1}, {-1,1}, {1,1}, {1, -1}};
 	board_pos KNIGHT[8] = { {-2, 1}, {2, 1}, {-2, -1}, {2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2} };
 	board_pos ROOK[4] = { {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
 	board_pos KING_QUEEN[8] = { {1,1}, {-1, 1}, {-1, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
-}
+};
 
-using BOARD = array<array<optional<piece>, 8>, 8>;
+static constexpr std::array<piece_type, 8> start_row = {
+		piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
+		piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
+};
 
 void bitboard_set(uint64_t& bitboard, board_pos pos) {
 	if(pos.is_valid())
@@ -98,8 +102,6 @@ bool bitboard_get(uint64_t bitboard, board_pos pos) {
 }
 
 
-
-
 int get_color_value(piece_color color) {
     return color == piece_color::BLACK ? -1 : 1;
 }
@@ -109,40 +111,3 @@ std::random_device rd;
 std::mt19937_64 e2(rd());
 std::uniform_int_distribution<uint64_t> dist;
 
-piece_type promote_message(SDL_Window* win) {
-	int buttonid = 0;
-
-	const SDL_MessageBoxButtonData buttons[4] = {
-		{
-			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-			.buttonid = int(piece_type::QUEEN),
-			.text = "Queen",
-		},
-		{
-			.flags = 0,
-			.buttonid = int(piece_type::ROOK),
-			.text = "Rook",
-		},
-		{
-			.flags = 0,
-			.buttonid = int(piece_type::BISHOP),
-			.text = "Bishop",
-		},
-		{
-			.flags = 0,
-			.buttonid = int(piece_type::KNIGHT),
-			.text = "Knight",
-		}
-	};
-
-	SDL_MessageBoxData message_box_data = {
-		.flags = 0,
-		.window = win,
-		.title = "promote a piece",
-		.numbuttons = 4,
-		.buttons = buttons,
-
-	};
-	SDL_ShowMessageBox(&message_box_data, &buttonid);
-	return piece_type(buttonid);
-}

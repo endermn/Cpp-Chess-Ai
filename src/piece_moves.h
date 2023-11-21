@@ -1,6 +1,6 @@
 class PieceMoves {
 public:
-	BOARD board;
+	array<array<optional<piece>, 8>, 8> board;
 	optional<int8_t> en_passant;
 	piece_color turn = piece_color::BLACK;
 	array<array<bool, 2>, 2> can_castle = { { { {false, false} } , { {false, false} } } };  // FIRST INDEX = COLOR, 2ND INDEX = SIDE 

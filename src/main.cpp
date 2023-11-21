@@ -15,28 +15,6 @@ int main(int argc, char* argv[]) {
 
 	transposition_table.init_table();
 
-	
-	static constexpr std::array<piece_type, 8> start_row = {
-		piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
-		piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
-	};
-
-	auto make_row = [](piece_color color) {
-		array<optional<piece>, 8> row;
-		for (int i = 0; i < 8; i++)
-		{
-			row[i] = piece{ color, start_row[i] };
-		}
-		return row;
-	};
-
-
-	auto make_pawn_row = [](piece_color color) {
-		array<optional<piece>, 8> row;	
-		for (auto &i : row)
-			i = piece{ color, piece_type::PAWN};
-		return row;
-	};
 
 	auto win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		SQUARE_SIZE * 8, SQUARE_SIZE * 8, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);

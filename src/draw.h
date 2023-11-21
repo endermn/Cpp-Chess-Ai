@@ -1,6 +1,42 @@
+piece_type promote_message(SDL_Window* win) {
+	int buttonid = 0;
 
+	const SDL_MessageBoxButtonData buttons[4] = {
+		{
+			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+			.buttonid = int(piece_type::QUEEN),
+			.text = "Queen",
+		},
+		{
+			.flags = 0,
+			.buttonid = int(piece_type::ROOK),
+			.text = "Rook",
+		},
+		{
+			.flags = 0,
+			.buttonid = int(piece_type::BISHOP),
+			.text = "Bishop",
+		},
+		{
+			.flags = 0,
+			.buttonid = int(piece_type::KNIGHT),
+			.text = "Knight",
+		}
+	};
 
-void draw(SDL_Renderer* rend, BOARD const &board, uint64_t bitboard) {
+	SDL_MessageBoxData message_box_data = {
+		.flags = 0,
+		.window = win,
+		.title = "promote a piece",
+		.numbuttons = 4,
+		.buttons = buttons,
+
+	};
+	SDL_ShowMessageBox(&message_box_data, &buttonid);
+	return piece_type(buttonid);
+}
+
+void draw(SDL_Renderer* rend, array<array<optional<piece>, 8>, 8> const &board, uint64_t bitboard) {
 	bool is_white = true;
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
