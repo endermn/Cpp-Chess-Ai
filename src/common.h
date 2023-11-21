@@ -100,7 +100,9 @@ void bitboard_set(uint64_t& bitboard, board_pos pos) {
 bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
 }
-
+void messagebox_error(std::string outside_text, std::string inside_text) {
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, outside_text.data(), inside_text.data(), nullptr);
+}
 
 int get_color_value(piece_color color) {
     return color == piece_color::BLACK ? -1 : 1;

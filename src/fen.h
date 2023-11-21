@@ -14,7 +14,7 @@ Position fen_to_position(std::string fen) {
 	for (char c : fen) {
 		if (c == '/') {
 			if(y == 7){
-				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "INVALID FEN", "Failed to load position from given fen", nullptr);
+				messagebox_error("INVALID FEN", "Failed to load position from given fen");
 				exit(1);
 			}
 			y++;
@@ -44,12 +44,10 @@ Position fen_to_position(std::string fen) {
 				position.turn = piece_color::WHITE;
 				break;
 			}
-		}
-		else if (isdigit(c)) {
+		} else if (isdigit(c)) {
 			for (int i = 0; i < c - '0'; i++)
 				position.board[y][x++] = {};
-		}
-		else {
+		} else {
 			position.board[y][x++] = piece{ isupper(c) ? piece_color::WHITE : piece_color::BLACK, umap[tolower(c)] };
 		}
 	}

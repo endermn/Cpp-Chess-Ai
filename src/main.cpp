@@ -19,15 +19,15 @@ int main(int argc, char* argv[]) {
 	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 8, SQUARE_SIZE * 8, 0);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
 
-	pieces_image = IMG_LoadTexture(rend, "pieces.png");
+	pieces_image = IMG_LoadTexture(rend, "piees.png");
 
 	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 	SDL_RenderSetLogicalSize(rend, 8, 8);
 	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
 
 	if (!pieces_image) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "failed to load image", "failed to load piece image", nullptr);
-		return 1;
+		messagebox_error("FAILED TO LOAD IMAGE", "Failed to load image for pieces");
+		exit(1);
 	}
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
