@@ -44,16 +44,16 @@ public:
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
 				if(board[y][x].has_value())
-					current_hash ^= piece_zobrist[y][x][piece_to_hash(board[y][x]->color, board[y][x]->type)];
+					current_hash ^= transposition_table.piece_zobrist[y][x][transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type)];
 
 			}
 		}
 		if(en_passant.has_value())
-			current_hash ^= en_passant_zobrist[en_passant.value()];
+			current_hash ^= transposition_table.en_passant_zobrist[en_passant.value()];
 		for(int y = 0; y < 2; y++) {
 			for(int x = 0; x < 2; x++){
 				if(can_castle[y][x])
-					current_hash ^= castle_zobrist[y][x];
+					current_hash ^= transposition_table.castle_zobrist[y][x];
 			}
 		}
 		return current_hash;
@@ -73,9 +73,6 @@ public:
 
 				piece src_piece = board[y][x].value();
 				switch(src_piece.type) {
-				case piece_type::BISHOP:
-					if((y == 1 && x == 1) || (y == 1 && x == 6) || (y == 6 && x == 1) || (y == 6 && x == 6))
-						eval += get_color_value(src_piece.color) * 0.05f;
 				case piece_type::KING:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
@@ -137,7 +134,7 @@ public:
 		std::vector<move> best_moves;
 		best_moves.reserve(4);
 		size_t best_moves_size = 0;
-		array<int, 3> game_phase_depth = {2, 2, 2}; 
+		array<int, 3> game_phase_depth = {2, 2, 4}; 
 		float max = INT_MIN;
 
 		for (int y = 0; y < board.size(); y++) {
@@ -244,8 +241,8 @@ public:
 	float negamax(float alpha, float beta, int depth, piece_color turn) {
 		float best_score = -10000000;
 		uint64_t current_hash = hash();
-		if(transposition_table.contains(current_hash) && transposition_table[current_hash].depth >= depth)
-			return transposition_table[current_hash].evaluation;
+		if(transposition_table.table.contains(current_hash) && transposition_table.table[current_hash].depth >= depth)
+			return transposition_table.table[current_hash].evaluation;
 		if (depth == 0)
 			return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
@@ -271,7 +268,7 @@ public:
 			}
 		}
 
-		transposition_table[current_hash] = {.evaluation = alpha, .depth = depth};
+		transposition_table.table[current_hash] = {.evaluation = alpha, .depth = depth};
 
 		return alpha;
 	}

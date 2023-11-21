@@ -55,10 +55,7 @@ struct zobrist_value {
 	float evaluation;
 	int depth;
 };
-std::array<std::array<std::array<uint64_t, 12>, 8>, 8> piece_zobrist;
-std::array<std::array<uint64_t, 2>, 2> castle_zobrist;
-std::array<uint64_t, 8> en_passant_zobrist;
-std::unordered_map<uint64_t, zobrist_value> transposition_table;
+
 
 struct board_pos {
 	int x;
@@ -100,15 +97,17 @@ bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
 }
 
-int piece_to_hash (piece_color color, piece_type type) {
-	return int(type) + int(color) * 6;
-}
+
 
 
 int get_color_value(piece_color color) {
     return color == piece_color::BLACK ? -1 : 1;
 }
 
+
+std::random_device rd;
+std::mt19937_64 e2(rd());
+std::uniform_int_distribution<uint64_t> dist;
 
 piece_type promote_message(SDL_Window* win) {
 	int buttonid = 0;
