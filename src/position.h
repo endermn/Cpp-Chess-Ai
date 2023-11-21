@@ -39,12 +39,32 @@ public:
 		return mobility_score;
 	}
 
+	uint64_t hash () const {
+		uint64_t current_hash;
+		for(int y = 0; y < 8; y++) {
+			for(int x = 0; x < 8; x++) {
+				if(board[y][x].has_value())
+					current_hash ^= piece_zobrist[y][x][piece_to_hash(board[y][x]->color, board[y][x]->type)];
+
+			}
+		}
+		if(en_passant.has_value())
+			current_hash ^= en_passant_zobrist[en_passant.value()];
+		for(int y = 0; y < 2; y++) {
+			for(int x = 0; x < 2; x++){
+				if(can_castle[y][x])
+					current_hash ^= castle_zobrist[y][x];
+			}
+		}
+		return current_hash;
+	}
+
 	float evaluate() const{
 		float eval = 0;
 
 		game_phase phase = get_game_phase();
 
-		std::array<board_pos, 2> king_positions;
+		std::array<optional<board_pos>, 2> king_positions = {std::nullopt, std::nullopt};
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -53,6 +73,9 @@ public:
 
 				piece src_piece = board[y][x].value();
 				switch(src_piece.type) {
+				case piece_type::BISHOP:
+					if((y == 1 && x == 1) || (y == 1 && x == 6) || (y == 6 && x == 1) || (y == 6 && x == 6))
+						eval += get_color_value(src_piece.color) * 0.05f;
 				case piece_type::KING:
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
@@ -60,9 +83,9 @@ public:
 					if(x < 7 && x > 0) {
 						if(!(board[y + get_color_value(src_piece.color)][x + 1]->type == piece_type::PAWN ||
 						board[y + get_color_value(src_piece.color)][x - 1]->type == piece_type::PAWN)) 
-							eval -= get_color_value(src_piece.color) * 0.05f;
+							eval -= get_color_value(src_piece.color) * 0.01f;
 						else 
-							eval += get_color_value(src_piece.color) * 1.01f;
+							eval += get_color_value(src_piece.color) * 0.01f;
 					}
 					if (board[y + get_color_value(src_piece.color)][x]->type == board[y][x]->type)
 						eval -= get_color_value(src_piece.color) * 0.5f;
@@ -81,7 +104,7 @@ public:
 		if(phase == game_phase::ENDGAME){
 			std::array<int, 2> mobility_score = targetted_squares_count();
 			eval += 0.001 * (mobility_score[0] - mobility_score[1]);
-			eval *= 3.f/sqrt(pow(king_positions[0].x - king_positions[1].x, 2) + pow(king_positions[0].y - king_positions[1].y, 2))  + 1;
+			eval *= 3.f/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
 		}
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
@@ -114,7 +137,7 @@ public:
 		std::vector<move> best_moves;
 		best_moves.reserve(4);
 		size_t best_moves_size = 0;
-		array<int, 3> game_phase_depth = {2, 2, 4}; 
+		array<int, 3> game_phase_depth = {2, 2, 2}; 
 		float max = INT_MIN;
 
 		for (int y = 0; y < board.size(); y++) {
@@ -218,8 +241,11 @@ public:
 		return alpha;
 	}
 
-	float negamax(float alpha, float beta, int depth, piece_color turn) const {
+	float negamax(float alpha, float beta, int depth, piece_color turn) {
 		float best_score = -10000000;
+		uint64_t current_hash = hash();
+		if(transposition_table.contains(current_hash) && transposition_table[current_hash].depth >= depth)
+			return transposition_table[current_hash].evaluation;
 		if (depth == 0)
 			return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
@@ -244,6 +270,8 @@ public:
 				}
 			}
 		}
+
+		transposition_table[current_hash] = {.evaluation = alpha, .depth = depth};
 
 		return alpha;
 	}

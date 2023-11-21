@@ -13,6 +13,10 @@ Position fen_to_position(std::string fen) {
 	int x = 0, y = 0;
 	for (char c : fen) {
 		if (c == '/') {
+			if(y == 7){
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "INVALID FEN", "Failed to load position from given fen", nullptr);
+				exit(1);
+			}
 			y++;
 			x = 0;
 		}

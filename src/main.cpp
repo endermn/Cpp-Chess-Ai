@@ -11,7 +11,27 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
 
+	std::random_device rd;
+    std::mt19937_64 e2(rd());
+    std::uniform_int_distribution<uint64_t> dist;
 
+	for(int y = 0; y < 8; y++) {
+		for(int x = 0; x < 8; x++) {
+			for(int z = 0; z < 12; z++) {
+				piece_zobrist[y][x][z] = dist(e2);
+			}
+		}
+	}
+	for(int y = 0; y < 2; y++) {
+		for(int x = 0; x < 2; x++) {
+			castle_zobrist[y][x] = dist(e2);
+		}
+	}
+	for(int y = 0; y < 8; y++) {
+		en_passant_zobrist[y] = dist(e2);
+	}
+
+	
 	static constexpr std::array<piece_type, 8> start_row = {
 		piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
 		piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
@@ -48,8 +68,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	// thread_sync sync = {.position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1")};
-	thread_sync sync = {.position = fen_to_position("1k6/6p1/8/8/8/8/8/1K6 w - - 0 1")};
+	thread_sync sync = {.position = fen_to_position("6r1/8/1k6/8/8/8/8/1K6 w - - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	
 

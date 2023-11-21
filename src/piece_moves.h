@@ -5,7 +5,7 @@ public:
 	piece_color turn = piece_color::BLACK;
 	array<array<bool, 2>, 2> can_castle = { { { {false, false} } , { {false, false} } } };  // FIRST INDEX = COLOR, 2ND INDEX = SIDE 
 
-
+private:
 	uint64_t king_moves(board_pos selected_piece_pos) const {
 		uint64_t bitboard = 0;
 		piece_color src_color = board[selected_piece_pos.y][selected_piece_pos.x].value().color;
@@ -129,6 +129,7 @@ public:
 		return bitboard;
 	}
 
+public:
 	uint64_t get_moves(board_pos src_pos) const {
 		switch (board[src_pos.y][src_pos.x].value().type) {
 		case piece_type::KING:

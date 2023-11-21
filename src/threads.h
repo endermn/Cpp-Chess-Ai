@@ -28,6 +28,7 @@ void rollback_position(std::vector<Position>& last_positions, uint64_t& possible
 void play_engine(thread_sync& sync, std::thread& ai_move_thread) {
 	// ai_thread_func(&sync);
 	sync.is_thinking = true;
+	std::cout << "transposition size: " << transposition_table.size() << '\n';
 	std::cout << "thinking.. \n";
 	ai_move_thread = std::thread(engine_thread_func, &sync);							
 	ai_move_thread.detach();

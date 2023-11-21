@@ -14,6 +14,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <cmath>
+#include <random>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -49,6 +51,15 @@ enum class piece_type : uint8_t {
 	PAWN,
 };
 
+struct zobrist_value {
+	float evaluation;
+	int depth;
+};
+std::array<std::array<std::array<uint64_t, 12>, 8>, 8> piece_zobrist;
+std::array<std::array<uint64_t, 2>, 2> castle_zobrist;
+std::array<uint64_t, 8> en_passant_zobrist;
+std::unordered_map<uint64_t, zobrist_value> transposition_table;
+
 struct board_pos {
 	int x;
 	int y;
@@ -70,6 +81,7 @@ struct move {
 	float score = 0;
 };
 
+
 namespace piece_offsets {
 	board_pos BISHOP[4] = {{-1,-1}, {-1,1}, {1,1}, {1, -1}};
 	board_pos KNIGHT[8] = { {-2, 1}, {2, 1}, {-2, -1}, {2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2} };
@@ -86,6 +98,10 @@ void bitboard_set(uint64_t& bitboard, board_pos pos) {
 
 bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
+}
+
+int piece_to_hash (piece_color color, piece_type type) {
+	return int(type) + int(color) * 6;
 }
 
 
