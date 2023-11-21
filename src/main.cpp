@@ -16,12 +16,13 @@ int main(int argc, char* argv[]) {
 	transposition_table.init_table();
 
 
-	auto win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-		SQUARE_SIZE * 8, SQUARE_SIZE * 8, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
-	auto rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 8, SQUARE_SIZE * 8, 0);
+	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+
+	pieces_image = IMG_LoadTexture(rend, "pieces.png");
+
 	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 	SDL_RenderSetLogicalSize(rend, 8, 8);
-	pieces_image = IMG_LoadTexture(rend, "pieces.png");
 	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
 
 	if (!pieces_image) {
