@@ -60,9 +60,9 @@ public:
 					if(x < 7 && x > 0) {
 						if(!(board[y + get_color_value(src_piece.color)][x + 1]->type == piece_type::PAWN ||
 						board[y + get_color_value(src_piece.color)][x - 1]->type == piece_type::PAWN)) 
-							eval -= get_color_value(src_piece.color) * 0.5f;
+							eval -= get_color_value(src_piece.color) * 0.05f;
 						else 
-							eval += get_color_value(src_piece.color) * 1.1f;
+							eval += get_color_value(src_piece.color) * 1.01f;
 					}
 					if (board[y + get_color_value(src_piece.color)][x]->type == board[y][x]->type)
 						eval -= get_color_value(src_piece.color) * 0.5f;
