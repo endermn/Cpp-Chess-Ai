@@ -156,6 +156,7 @@ public:
 		int double_move_y = src_piece.color == piece_color::WHITE ? 4 : 3;
 		int next_y = selected_piece_pos.y - 1 + 2 * int(src_piece.color);
 		en_passant = std::nullopt;
+
 		if (src_piece.type == piece_type::PAWN) {
 			if (target.y == 0 || target.y == 7)
 			{
@@ -166,8 +167,7 @@ public:
 			}
 			if (target == board_pos{ selected_piece_pos.x, double_move_y })
 				en_passant = selected_piece_pos.x;
-			else 
-				en_passant = std::nullopt;
+
 			if (target == board_pos{ selected_piece_pos.x + 1, next_y } &&
 				!board[target.y][target.x].has_value())
 			{

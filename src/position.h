@@ -74,6 +74,13 @@ public:
 				piece src_piece = board[y][x].value();
 				switch(src_piece.type) {
 				case piece_type::KING:
+					for (int i = -1; i < 2; i++) {
+						board_pos y_pos = {.x = x, .y = y - get_color_value(src_piece.color)};
+						if (y_pos.is_valid() && board[y_pos.y][x + i].has_value())
+							eval += get_color_value(src_piece.color) * 0.1;
+						if (y_pos.is_valid() && !board[y_pos.y][x].has_value())
+							eval -= get_color_value(src_piece.color) * 0.2;
+					}
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
 				case piece_type::PAWN:

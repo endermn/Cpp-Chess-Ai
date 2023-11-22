@@ -42,7 +42,7 @@ void draw(SDL_Renderer* rend, array<array<optional<piece>, 8>, 8> const &board, 
 		for (int x = 0; x < 8; x++) {
 			is_white ? SDL_SetRenderDrawColor(rend, 255, 255, 255, 255) : SDL_SetRenderDrawColor(rend, 53, 173, 107, 255);
 			if(x != 7)
-			is_white = !is_white;
+				is_white = !is_white;
 			SDL_Rect dst_rect = {x, y, 1, 1};
 			SDL_RenderFillRect(rend, &dst_rect);
 			if (bitboard_get(bitboard, { x, y }))

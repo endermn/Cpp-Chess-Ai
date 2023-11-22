@@ -45,6 +45,10 @@ Position fen_to_position(std::string fen) {
 				break;
 			}
 		} else if (isdigit(c)) {
+			if (c - '0' > 8 || c - '0' < 1) {
+				messagebox_error("INVALID FEN", "Invalid fen!");
+				exit(1);
+			}
 			for (int i = 0; i < c - '0'; i++)
 				position.board[y][x++] = {};
 		} else {
