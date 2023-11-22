@@ -14,8 +14,6 @@ int main(int argc, char* argv[]) {
 	IMG_Init(IMG_INIT_PNG);
 
 	transposition_table.init_table();
-
-
 	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 8, SQUARE_SIZE * 8, 0);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
 
@@ -31,7 +29,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	thread_sync sync = {.position = fen_to_position("r3k2r/pp1pp1pp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1")};
+	thread_sync sync = {.position = fen_to_position("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1")};
 	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	piece_color engine_color = piece_color::BLACK;

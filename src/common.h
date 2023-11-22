@@ -16,6 +16,8 @@
 #include <condition_variable>
 #include <cmath>
 #include <random>
+#include <time.h>
+#include <unistd.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

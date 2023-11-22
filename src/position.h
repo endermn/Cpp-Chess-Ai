@@ -75,10 +75,12 @@ public:
 				switch(src_piece.type) {
 				case piece_type::KING:
 					for (int i = -1; i < 2; i++) {
-						board_pos y_pos = {.x = x, .y = y - get_color_value(src_piece.color)};
-						if (y_pos.is_valid() && board[y_pos.y][x + i].has_value())
+						board_pos y_pos = {.x = x + i, .y = y - get_color_value(src_piece.color)};
+						if(!y_pos.is_valid())
+							break;
+						if (board[y_pos.y][x + i].has_value())
 							eval += get_color_value(src_piece.color) * 0.1;
-						if (y_pos.is_valid() && !board[y_pos.y][x].has_value())
+						if (!board[y_pos.y][x].has_value())
 							eval -= get_color_value(src_piece.color) * 0.2;
 					}
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
@@ -157,14 +159,15 @@ public:
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
 					if (!new_position.is_under_check(turn)) {
-						float eval = -new_position.negamax(-1e9, 1e9, game_phase_depth[int(get_game_phase())], static_cast<piece_color>(!static_cast<bool>(turn)));
-						if (eval > max) {
-							max = eval;
+						float evaluation = -new_position.negamax(-1e9, 1e9, game_phase_depth[int(get_game_phase())], static_cast<piece_color>(!static_cast<bool>(turn)));
+						
+						if (evaluation > max) {
+							max = evaluation;
 							best_moves.clear();
 							best_moves.push_back({ dst_pos, {x, y} });
 							best_moves_size = std::max(best_moves.size(), best_moves_size);
 						}
-						else if (eval == max) {
+						else if (evaluation == max) {
 							best_moves.push_back({ dst_pos, {x, y} });
 							best_moves_size = std::max(best_moves.size(), best_moves_size);
 						}
