@@ -89,7 +89,6 @@ private:
 		piece_color selected_piece_color = board[selected_piece_pos.y][selected_piece_pos.x].value().color;
 
 		int next_y = selected_piece_pos.y - 1 + 2 * int(selected_piece_color);
-		//std::cout << selected_piece_pos.y << " " << next_y << '\n';
 		int double_move_y = selected_piece_color == piece_color::WHITE ? 4 : 3;
 
 		if (selected_piece_pos.x < 7){
@@ -156,7 +155,7 @@ public:
 
 		int double_move_y = src_piece.color == piece_color::WHITE ? 4 : 3;
 		int next_y = selected_piece_pos.y - 1 + 2 * int(src_piece.color);
-
+		en_passant = std::nullopt;
 		if (src_piece.type == piece_type::PAWN) {
 			if (target.y == 0 || target.y == 7)
 			{
