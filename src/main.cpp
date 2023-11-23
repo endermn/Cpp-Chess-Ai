@@ -29,10 +29,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	thread_sync sync = {.position = fen_to_position("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1")};
+	thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
 	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
-	piece_color engine_color = piece_color::BLACK;
+	piece_color engine_color = piece_color::WHITE;
 	
 
 	SDL_ShowWindow(win);

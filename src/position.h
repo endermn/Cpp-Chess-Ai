@@ -139,28 +139,29 @@ public:
 		return bitboard_get(targetted_squares, king_pos);
 	}
 
-	move ai_move() const {
+	bool search_at_depth(std::vector<move>& old_best_moves, int depth, std::chrono::steady_clock::time_point then) const {
 		std::vector<move> best_moves;
-		best_moves.reserve(4);
 		size_t best_moves_size = 0;
-		array<int, 3> game_phase_depth = {2, 2, 4}; 
 		float max = INT_MIN;
-
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value() || board[y][x].value().color != turn)
 					continue;
+				if (old_best_moves.size() > 0) 
+					if(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - then).count() >= 1)
+						return true;
 
 				uint64_t move_bitboard = get_moves(board_pos{ x, y });
 				while (move_bitboard != 0) {
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
 					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
+						
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
 					if (!new_position.is_under_check(turn)) {
-						float evaluation = -new_position.negamax(-1e9, 1e9, game_phase_depth[int(get_game_phase())], static_cast<piece_color>(!static_cast<bool>(turn)));
-						
+						float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
+						// std::cout << depth << '\n';
 						if (evaluation > max) {
 							max = evaluation;
 							best_moves.clear();
@@ -176,7 +177,23 @@ public:
 			}
 
 		}
+		old_best_moves = best_moves;
+		return false;
+	}
+
+	move ai_move() const {
+		std::vector<move> best_moves;
+		best_moves.reserve(4);
+		int current_depth = 2;
+		float last_eval;
+		auto then = std::chrono::steady_clock::now();
+		do{
+			if(search_at_depth(best_moves, current_depth, then))
+				break;
+			current_depth++;
+		}while(true);
 		// std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
+		// TODO: On checkmate implementation check if best_moves.size() > 0
 		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
 		return best_moves[selected_move];
 	}
@@ -267,6 +284,9 @@ public:
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
 					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
+
+					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
+						return 1920398.f + depth * 1'000'000;
 					Position new_position = *this;
 					new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
 					float eval = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));

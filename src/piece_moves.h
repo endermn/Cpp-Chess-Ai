@@ -130,7 +130,7 @@ private:
 
 public:
 	uint64_t get_moves(board_pos src_pos) const {
-		switch (board[src_pos.y][src_pos.x].value().type) {
+		switch (board[src_pos.y][src_pos.x]->type) {
 		case piece_type::KING:
 			return king_moves(src_pos);
 		case piece_type::QUEEN:
