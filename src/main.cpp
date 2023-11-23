@@ -1,11 +1,11 @@
-#include "common.h"
-#include "draw.h"
-#include "transposition_table.h"
-#include "piece_goodness.h"
-#include "piece_moves.h"
-#include "position.h"
-#include "fen.h"
-#include "threads.h"
+#include "common.hpp"
+#include "draw.hpp"
+#include "transposition_table.hpp"
+#include "piece_goodness.hpp"
+#include "piece_moves.hpp"
+#include "position.hpp"
+#include "fen.hpp"
+#include "threads.hpp"
 
 
 
