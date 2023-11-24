@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE MyTest
+#define BOOST_TEST_MODULE FenTests
 #include <boost/test/included/unit_test.hpp>
 
 #include "../src/common.hpp"
@@ -8,7 +8,6 @@
 #include "../src/piece_moves.hpp"
 #include "../src/position.hpp"
 #include "../src/fen.hpp"
-
 static Position pos = fen_to_position("r1bqkbnr/ppppp1pp/2n5/4Pp2/8/8/PPPP1PPP/RNBQKBNR w Kkq f6 0 3");
 
 BOOST_AUTO_TEST_CASE(fen_en_passant_test)
@@ -38,3 +37,7 @@ BOOST_AUTO_TEST_CASE(fen_pieces_count_test) {
     BOOST_TEST(pieces_count == 32);
 }
 
+
+BOOST_AUTO_TEST_CASE(fen_game_phase_test) {
+    BOOST_TEST((pos.get_game_phase() == game_phase::OPENING));
+}

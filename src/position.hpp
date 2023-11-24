@@ -1,29 +1,21 @@
 class Position : public PieceMoves {
 public:
 	game_phase get_game_phase() const{
-		int total_pieces = 0;
 		int total_major_pieces = 0;
-		int total_pawns = 0;
 
 		for (int y = 0; y < board.size(); y++) 
 			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value())
+				if (!board[y][x].has_value() || board[y][x]->type == piece_type::PAWN || board[y][x]->type == piece_type::KING)
 					continue;
-				total_pieces++;
-				if (board[y][x]->type == piece_type::KING)
-					continue;
-				if (board[y][x].value().type != piece_type::PAWN)
-					total_pawns++;
-				else
-					total_major_pieces++;
+				total_major_pieces++;
 
 			}
-		if (total_pieces <= 10 && total_major_pieces <= 3)
+		if (total_major_pieces <= 4)
 			return game_phase::ENDGAME;
-		else if (total_pawns >= 11)
-			return game_phase::OPENING;
-		else
+		else if (total_major_pieces <= 10)
 			return game_phase::MIDGAME;
+		else
+			return game_phase::OPENING;
 	}
 
 	std::array<int, 2> targetted_squares_count() const{
