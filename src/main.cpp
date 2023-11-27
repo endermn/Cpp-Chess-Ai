@@ -29,15 +29,16 @@ int main(int argc, char* argv[]) {
 	}
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
-	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
+	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
-	piece_color engine_color = piece_color::WHITE;
+	piece_color engine_color = piece_color::BLACK;
 	
 
 	SDL_ShowWindow(win);
 
-	std::vector<Position> last_positions;
+	std::vector<Position> old_positions;
+	std::vector<Position> new_positions;
 	std::thread ai_move_thread;
 	uint64_t possible_moves = 0;
 	optional<board_pos> src_pos;
@@ -71,8 +72,9 @@ int main(int argc, char* argv[]) {
 						if (bitboard_get(possible_moves, pos))
 						{
 							std::lock_guard<std::mutex> lock(sync.mutex);
-							last_positions.push_back(sync.position);
+							old_positions.push_back(sync.position);
 							sync.position.make_move(pos, src_pos.value(), win);
+							new_positions.clear();
 							// position.ai_move(piece_color(!bool(position.turn)));
 							play_engine(sync, ai_move_thread);
 
@@ -86,8 +88,13 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case SDL_KEYDOWN:
-				if (event.key.keysym.sym == SDLK_LEFT && !sync.is_thinking)
-					rollback_position(last_positions, possible_moves, src_pos, sync);
+				if (event.key.keysym.sym == SDLK_LEFT && !sync.is_thinking && old_positions.size() > 0) {
+					new_positions.push_back(sync.position);
+					rollback_position(old_positions, possible_moves, src_pos, sync);
+				} else if (event.key.keysym.sym == SDLK_RIGHT && !sync.is_thinking && new_positions.size() > 0){
+					old_positions.push_back(sync.position);
+					rollback_position(new_positions, possible_moves, src_pos, sync);
+				}
 				break;
 			}
 		}
