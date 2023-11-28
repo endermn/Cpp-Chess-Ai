@@ -153,7 +153,8 @@ public:
 					new_position.make_move(dst_pos, { x, y }, nullptr);
 					if (!new_position.is_under_check(turn)) {
 						float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
-						// std::cout << depth << '\n';
+						std::cout << depth << '\n';
+						// std::cout << transposition_table.table.size();
 						if (evaluation > max) {
 							max = evaluation;
 							best_moves.clear();
@@ -257,15 +258,7 @@ public:
 		return alpha;
 	}
 
-	float negamax(float alpha, float beta, int depth, piece_color turn) {
-		float best_score = -10000000;
-		uint64_t current_hash = hash();
-		if(transposition_table.table.contains(current_hash) && transposition_table.table[current_hash].depth >= depth)
-			return transposition_table.table[current_hash].evaluation;
-		if (depth == 0)
-			return search_captures(alpha, beta);
-			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
-
+	float evaluate_negamax (float alpha, float beta, int depth, piece_color turn) {
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value() || board[y][x]->color != turn)
@@ -289,10 +282,20 @@ public:
 				}
 			}
 		}
-
-		transposition_table.table[current_hash] = {.evaluation = alpha, .depth = depth};
-
 		return alpha;
+	}
+
+	float negamax(float alpha, float beta, int depth, piece_color turn) {
+		float best_score = -10000000;
+		uint64_t current_hash = hash();
+		if(transposition_table.table.contains(current_hash) && transposition_table.table[current_hash].depth >= depth)
+			return transposition_table.table[current_hash].evaluation;
+			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
+
+		float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth, turn);
+		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
+
+		return evaluation;
 	}
 
 };

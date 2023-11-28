@@ -7,6 +7,7 @@
 #include "fen.hpp"
 #include "threads.hpp"
 
+using namespace std::literals;
 
 
 int main(int argc, char* argv[]) {
@@ -14,19 +15,21 @@ int main(int argc, char* argv[]) {
 	IMG_Init(IMG_INIT_PNG);
 	
 	transposition_table.init_table();
-	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 8, SQUARE_SIZE * 8, 0);
+	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, 0);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
+	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
-	pieces_image = IMG_LoadTexture(rend, "pieces.png");
-
-	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
-	SDL_RenderSetLogicalSize(rend, 8, 8);
-	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
-
-	if (!pieces_image) {
-		messagebox_error("FAILED TO LOAD IMAGE", "Failed to load image for pieces");
+	if (!pieces_image || !digits_image) {
+		messagebox_error("FAILED TO LOAD SPRITES", "Failed to load spritesheets");
 		exit(1);
 	}
+
+	SDL_SetTextureScaleMode(digits_image, SDL_ScaleModeBest);
+	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
+	SDL_RenderSetLogicalSize(rend, 10, 8);
+	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
+
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
@@ -34,6 +37,9 @@ int main(int argc, char* argv[]) {
 
 	piece_color engine_color = piece_color::BLACK;
 	
+	std::chrono::seconds time_black{10 * 60s};
+	std::chrono::seconds time_white{10 * 60s};
+	auto now = std::chrono::steady_clock::now();
 
 	SDL_ShowWindow(win);
 
@@ -47,6 +53,10 @@ int main(int argc, char* argv[]) {
 		play_engine(sync, ai_move_thread);
 
 	while (true) {
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count() >= 1) {
+			sync.position.turn == piece_color::WHITE ? time_white-- : time_black--;
+			now = std::chrono::steady_clock::now();
+		}
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type){
@@ -99,7 +109,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		// std::lock_guard<std::mutex> lock(sync.mutex);
-		draw(rend, sync.position.board, possible_moves);
+		draw(time_black ,time_white , rend, sync.position.board, pieces_image, digits_image,possible_moves, sync.is_thinking);
 	}
 
 	SDL_DestroyRenderer(rend);

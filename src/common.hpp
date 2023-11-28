@@ -28,7 +28,6 @@ using std::optional, std::array;
 
 const int SQUARE_SIZE = 75;
 
-SDL_Texture* pieces_image;
 
 
 enum class piece_color : bool {
