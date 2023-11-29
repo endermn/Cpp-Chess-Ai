@@ -258,7 +258,7 @@ public:
 		return alpha;
 	}
 
-	float evaluate_negamax (float alpha, float beta, int depth, piece_color turn) {
+	float evaluate_negamax (float alpha, float beta, int depth) {
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value() || board[y][x]->color != turn)
@@ -290,12 +290,14 @@ public:
 		uint64_t current_hash = hash();
 		if(transposition_table.table.contains(current_hash) && transposition_table.table[current_hash].depth >= depth)
 			return transposition_table.table[current_hash].evaluation;
+		if (depth == 0)
+			return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
 
-		float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth, turn);
-		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
+		// float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth, turn);
+		// transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
 
-		return evaluation;
+		return evaluate_negamax(alpha, beta, depth);
 	}
 
 };

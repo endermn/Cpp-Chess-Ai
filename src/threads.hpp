@@ -4,6 +4,12 @@ struct thread_sync {
 	std::atomic<bool> is_thinking;
 };
 
+struct position_times {
+	Position position;
+	std::chrono::seconds time_black;
+	std::chrono::seconds time_white;
+};
+
 void engine_thread_func(thread_sync *sync) {
 
 	auto start = std::chrono::high_resolution_clock::now();
@@ -16,11 +22,14 @@ void engine_thread_func(thread_sync *sync) {
 	auto stop = std::chrono::high_resolution_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << '\n';
 } 
-void rollback_position(std::vector<Position>& last_positions, uint64_t& possible_moves, optional<board_pos>& src_pos, thread_sync& sync) {
+void rollback_position(std::vector<position_times>& last_positions, uint64_t& possible_moves, optional<board_pos>& src_pos, thread_sync& sync, std::chrono::seconds& time_black, std::chrono::seconds& time_white) {
 	if(last_positions.size() > 0) {
 		possible_moves = 0;
 		src_pos = std::nullopt;
-		sync.position = last_positions.back();
+		auto back = last_positions.back();
+		sync.position = back.position;
+		time_white = back.time_white;
+		time_black = back.time_black;
 		last_positions.pop_back();
 	}
 }

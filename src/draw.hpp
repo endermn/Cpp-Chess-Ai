@@ -36,9 +36,9 @@ piece_type promote_message(SDL_Window* win) {
 	return piece_type(buttonid);
 }
 
-void draw_digits(float x, float y, SDL_Renderer* rend, SDL_Texture* digits_image, int digit) {
-	SDL_Rect src_rect{digit * 100, 0, 100, 200};
-	SDL_FRect dst_rect = {x, y, 0.5, 1};
+void draw_digits(float x, float y, SDL_Renderer* rend, SDL_Texture* digits_image, int digit, float height) {
+	SDL_Rect src_rect{digit * 100, 0, 100, 112};
+	SDL_FRect dst_rect = {x , y + .25f, 0.5, height / 2};
 	SDL_RenderCopyF(rend, digits_image, &src_rect, &dst_rect);
 }
 
@@ -68,17 +68,17 @@ void draw(std::chrono::seconds b_time, std::chrono::seconds w_time, SDL_Renderer
 
 
 	
-	draw_digits(8, 0, rend, digits_image, int(b_time.count()) / 600);
-	draw_digits(8.5, 0, rend, digits_image, int(b_time.count()) / 60 % 10);
+	draw_digits(8, 0, rend, digits_image, int(b_time.count()) / 600, 1);
+	draw_digits(8.5, 0, rend, digits_image, int(b_time.count()) / 60 % 10, 1);
 
-	draw_digits(8, 7, rend, digits_image, int(w_time.count()) / 600);
-	draw_digits(8.5, 7, rend, digits_image, int(w_time.count()) / 60 % 10);
+	draw_digits(8, 7, rend, digits_image, int(w_time.count()) / 600, 1);
+	draw_digits(8.5, 7, rend, digits_image, int(w_time.count()) / 60 % 10, 1);
 
-	draw_digits(9, 0, rend, digits_image, int(b_time.count()) % 60 / 10);
-	draw_digits(9.5, 0, rend, digits_image, int(b_time.count()) % 60 % 10);
+	draw_digits(9, 0, rend, digits_image, int(b_time.count()) % 60 / 10, 0.9);
+	draw_digits(9.5, 0, rend, digits_image, int(b_time.count()) % 60 % 10, 0.9);
 
-	draw_digits(9, 7, rend, digits_image, int(w_time.count()) % 60 / 10);
-	draw_digits(9.5, 7, rend, digits_image, int(w_time.count()) % 60 % 10);
+	draw_digits(9, 7, rend, digits_image, int(w_time.count()) % 60 / 10, 0.9);
+	draw_digits(9.5, 7, rend, digits_image, int(w_time.count()) % 60 % 10, 0.9);
 
 
 	SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
