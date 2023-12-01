@@ -35,8 +35,10 @@ public:
 		uint64_t current_hash = turn == piece_color::WHITE ? 2103981289031988 : 0;
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
-				if(board[y][x].has_value())
-					current_hash ^= transposition_table.piece_zobrist[y][x][transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type)];
+				if(board[y][x].has_value()) {
+					int hash_index = transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type);
+					current_hash ^= transposition_table.piece_zobrist[y][x][hash_index];
+				}
 
 			}
 		}
@@ -67,38 +69,40 @@ public:
 					continue;
 
 				piece src_piece = board[y][x].value();
+				int color_value = get_color_value(src_piece.color);
 				switch(src_piece.type) {
 				case piece_type::KING:
 					for (int i = -1; i < 2; i++) {
-						board_pos y_pos = {.x = x + i, .y = y - get_color_value(src_piece.color)};
+						board_pos y_pos = {.x = x + i, .y = y - color_value};
 						if(!y_pos.is_valid())
 							break;
 						if (board[y_pos.y][x + i].has_value())
-							eval += get_color_value(src_piece.color) * 0.1;
+							eval += color_value * 0.1;
 						if (!board[y_pos.y][x].has_value())
-							eval -= get_color_value(src_piece.color) * 0.2;
+							eval -= color_value * 0.2;
 					}
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
 				case piece_type::PAWN:
 					if(x < 7 && x > 0) {
-						if(!(board[y + get_color_value(src_piece.color)][x + 1]->type == piece_type::PAWN ||
-						board[y + get_color_value(src_piece.color)][x - 1]->type == piece_type::PAWN)) 
-							eval -= get_color_value(src_piece.color) * 0.01f;
+						if(!(board[y + color_value][x + 1]->type == piece_type::PAWN ||
+						board[y + color_value][x - 1]->type == piece_type::PAWN)) 
+							eval -= color_value * 0.01f;
 						else 
-							eval += get_color_value(src_piece.color) * 0.01f;
+							eval += color_value * 0.01f;
 					}
-					if (board[y + get_color_value(src_piece.color)][x]->type == board[y][x]->type)
-						eval -= get_color_value(src_piece.color) * 0.5f;
+					if (board[y + color_value][x]->type == board[y][x]->type)
+						eval -= color_value * 0.5f;
 					break;
 				default:
 					break;
 				}
 
-				float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
-				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness;
+				int goodness_y = src_piece.color == piece_color::BLACK ? 7 - y : y;
+				float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME][int(src_piece.type)][goodness_y][x];
+				eval += color_value * 0.01 * piece_goodness;
 				
-				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
+				eval += color_value * get_piece_value(src_piece.type);
 			}
 		}
 
@@ -106,7 +110,9 @@ public:
 		if(phase == game_phase::ENDGAME){
 			std::array<int, 2> mobility_score = targetted_squares_count();
 			eval += 0.001 * (mobility_score[0] - mobility_score[1]);
-			eval *= 3.f/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
+			float delta_x = king_positions[0]->x - king_positions[1]->x;
+			float delta_y = king_positions[0]->y - king_positions[1]->y;
+			eval *= 3.f/sqrt(pow(delta_x, 2) + pow(delta_y , 2)) + 1;
 		}
 		// if(phase == game_phase::ENDGAME)
 		// if(king_positions[0].has_value() && king_positions[1].has_value())
@@ -137,7 +143,7 @@ public:
 		return bitboard_get(targetted_squares, king_pos.value());
 	}
 
-	bool search_at_depth(std::vector<move>& old_best_moves, int depth, std::chrono::steady_clock::time_point then) const {
+	bool search_at_depth(std::vector<move>& old_best_moves, int depth, steady_clock::time_point then) const {
 		std::vector<move> best_moves;
 		size_t best_moves_size = 0;
 		float max = INT_MIN;
@@ -145,15 +151,15 @@ public:
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value() || board[y][x].value().color != turn)
 					continue;
-				if (old_best_moves.size() > 0) 
-					if(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - then).count() >= 1)
-						return true;
+				if (old_best_moves.size() > 0 && duration_cast<seconds>(steady_clock::now() - then).count() >= 1)
+					return true;
 
 				uint64_t move_bitboard = get_moves(board_pos{ x, y });
+
 				while (move_bitboard != 0) {
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
-					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
+					board_pos dst_pos = {int(index) % 8, int(index) / 8 };
 						
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
@@ -174,8 +180,8 @@ public:
 					}
 				}
 			}
-
 		}
+
 		old_best_moves = best_moves;
 		return false;
 	}
@@ -185,17 +191,14 @@ public:
 		best_moves.reserve(4);
 		int current_depth = 2;
 		float last_eval;
-		auto then = std::chrono::steady_clock::now();
+		auto then = steady_clock::now();
 		while(true){
 			if(search_at_depth(best_moves, current_depth, then))
 				break;
 			current_depth++;
 		}
-		// search_at_depth(best_moves, 4, then);
-		// std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
 		// TODO: On checkmate implementation check if best_moves.size() > 0
-		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
-		return best_moves[selected_move];
+		return best_moves[best_moves.size() == 1 ? 0 : std::rand() % best_moves.size()];
 	}
 
 	void order_moves(std::vector<move>& moves) const {
@@ -204,8 +207,7 @@ public:
 			piece_type move_piece_type = board[new_move.src_pos.y][new_move.src_pos.x]->type;
 			std::optional<piece_type> capture_piece_type = std::nullopt;
 
-			if (board[new_move.dst_pos.y][new_move.dst_pos.x].has_value())
-			{
+			if (board[new_move.dst_pos.y][new_move.dst_pos.x].has_value()) {
 				capture_piece_type = board[new_move.dst_pos.y][new_move.dst_pos.x]->type;
 				move_score += 10 * (get_piece_value(capture_piece_type.value()) - get_piece_value(move_piece_type));
 				if(capture_piece_type == piece_type::KING)
@@ -275,7 +277,7 @@ public:
 				while (move_bitboard != 0) {
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
-					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
+					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 
 					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
 						return 1'000'000.f + depth * 1'000'000.f;

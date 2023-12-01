@@ -6,24 +6,30 @@ struct thread_sync {
 
 struct position_times {
 	Position position;
-	std::chrono::seconds time_black;
-	std::chrono::seconds time_white;
+	seconds time_black;
+	seconds time_white;
 };
 
 void engine_thread_func(thread_sync *sync) {
 
-	auto start = std::chrono::high_resolution_clock::now();
+	auto start = high_resolution_clock::now();
 
 	move best_move = sync->position.ai_move();
 	std::lock_guard<std::mutex> lock(sync->mutex);
 	sync->position.make_move(best_move.dst_pos, best_move.src_pos, nullptr);
 	sync->is_thinking = false;
 	
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << '\n';
+	auto stop = high_resolution_clock::now();
+	std::cout << duration_cast<milliseconds>(stop - start).count() << '\n';
 } 
 
-void rollback_position(std::vector<position_times>& last_positions, uint64_t& possible_moves, optional<board_pos>& src_pos, thread_sync& sync, std::chrono::seconds& time_black, std::chrono::seconds& time_white) {
+void rollback_position(
+	std::vector<position_times>& last_positions, 
+	uint64_t& possible_moves, optional<board_pos>& src_pos, 
+	thread_sync& sync, 
+	seconds& time_black, 
+	seconds& time_white
+) {
 	if(last_positions.size() > 0) {
 		possible_moves = 0;
 		src_pos = std::nullopt;

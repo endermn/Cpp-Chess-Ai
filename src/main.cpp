@@ -20,6 +20,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
+
 	if (!pieces_image || !digits_image) {
 		messagebox_error("FAILED TO LOAD SPRITES", "Failed to load spritesheets");
 		exit(1);
@@ -37,14 +38,15 @@ int main(int argc, char* argv[]) {
 
 	piece_color engine_color = piece_color::WHITE;
 	
-	std::chrono::seconds time_black{10 * 60s};
-	std::chrono::seconds time_white{10 * 60s};
-	auto now = std::chrono::steady_clock::now();
+	seconds time_black{10 * 60s};
+	seconds time_white{10 * 60s};
+	auto now = steady_clock::now();
 
 	SDL_ShowWindow(win);
 
 	std::vector<position_times> old_positions;
-	std::vector<position_times> new_positions;	
+	std::vector<position_times> new_positions;
+
 	std::thread ai_move_thread;
 	uint64_t possible_moves = 0;
 	optional<board_pos> src_pos;
@@ -56,13 +58,14 @@ int main(int argc, char* argv[]) {
 		if (time_white.count() <= 0 || time_black.count() <= 0)
 			exit(0);
 
-		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count() >= 1) {
+		if (duration_cast<seconds>(steady_clock::now() - now).count() >= 1) {
 			sync.position.turn == piece_color::WHITE ? time_white-- : time_black--;
-			now = std::chrono::steady_clock::now();
+			now = steady_clock::now();
 		}
+
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
-			switch (event.type){
+			switch (event.type) {
 			case SDL_QUIT:
 				exit(0);
 			case SDL_MOUSEBUTTONDOWN:
@@ -71,29 +74,21 @@ int main(int argc, char* argv[]) {
 					if(!pos.is_valid())
 						break;
 					
-					if (!src_pos.has_value())
-					{
+					if (!src_pos.has_value()) {
 						std::lock_guard<std::mutex> lock(sync.mutex);
-						if (sync.position.board[pos.y][pos.x].has_value())
-						{
-							if (sync.position.turn == sync.position.board[pos.y][pos.x]->color)
-							{
+						if (sync.position.board[pos.y][pos.x].has_value()) {
+							if (sync.position.turn == sync.position.board[pos.y][pos.x]->color) {
 								src_pos = pos;
 								possible_moves = sync.position.get_moves(pos);
 							}
 						}
-					}
-					else {
-						if (bitboard_get(possible_moves, pos))
-						{
+					} else {
+						if (bitboard_get(possible_moves, pos)) {
 							std::lock_guard<std::mutex> lock(sync.mutex);
 							old_positions.push_back({sync.position, time_black, time_white});
 							sync.position.make_move(pos, src_pos.value(), win);
 							new_positions.clear();
 							play_engine(sync, ai_move_thread);
-							// position.ai_move(piece_color(!bool(position.turn)));
-
-							//turn = piece_color(!bool(turn));
 						}
 
 						possible_moves = 0;
@@ -110,6 +105,8 @@ int main(int argc, char* argv[]) {
 					old_positions.push_back({sync.position, time_black, time_white});
 					rollback_position(new_positions, possible_moves, src_pos, sync, time_black, time_white);
 				}
+				break;
+			default:
 				break;
 			}
 		}

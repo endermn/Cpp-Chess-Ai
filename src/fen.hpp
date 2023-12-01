@@ -43,6 +43,8 @@ Position fen_to_position(std::string fen) {
 			case 'w':
 				position.turn = piece_color::WHITE;
 				break;
+			default:
+				messagebox_error("INVALID FEN", "Invalid after board fen");
 			}
 		} else if (isdigit(c)) {
 			if (c - '0' > 8 || c - '0' < 1) {

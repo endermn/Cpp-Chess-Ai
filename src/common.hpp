@@ -25,6 +25,7 @@
 
 
 using std::optional, std::array;
+using namespace std::chrono;
 
 const int SQUARE_SIZE = 75;
 
@@ -82,35 +83,36 @@ struct move {
 };
 
 namespace piece_offsets {
-	board_pos BISHOP[4] = {{-1,-1}, {-1,1}, {1,1}, {1, -1}};
-	board_pos KNIGHT[8] = { {-2, 1}, {2, 1}, {-2, -1}, {2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2} };
-	board_pos ROOK[4] = { {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
-	board_pos KING_QUEEN[8] = { {1,1}, {-1, 1}, {-1, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
+	static constexpr board_pos BISHOP[4] = {{-1,-1}, {-1,1}, {1,1}, {1, -1}};
+	static constexpr board_pos KNIGHT[8] = { {-2, 1}, {2, 1}, {-2, -1}, {2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2} };
+	static constexpr board_pos ROOK[4] = { {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
+	static constexpr board_pos KING_QUEEN[8] = { {1,1}, {-1, 1}, {-1, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
 };
 
 static constexpr std::array<piece_type, 8> start_row = {
-		piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
-		piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
+	piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
+	piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
 };
 
-void bitboard_set(uint64_t& bitboard, board_pos pos) {
-	if(pos.is_valid())
-		bitboard |= 1ULL << (pos.y * 8 + pos.x);
+static void bitboard_set(uint64_t& bitboard, board_pos pos) {
+	if(!pos.is_valid())
+		throw std::runtime_error("bitboard_set: Invalid position");
+	bitboard |= 1ULL << (pos.y * 8 + pos.x);
 }
 
-bool bitboard_get(uint64_t bitboard, board_pos pos) {
+static bool bitboard_get(uint64_t bitboard, board_pos pos) {
 	return bitboard & (1ULL << (pos.y * 8 + pos.x));
 }
-void messagebox_error(std::string outside_text, std::string inside_text) {
+static void messagebox_error(std::string outside_text, std::string inside_text) {
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, outside_text.data(), inside_text.data(), nullptr);
 }
 
-int get_color_value(piece_color color) {
+static int get_color_value(piece_color color) {
     return color == piece_color::BLACK ? -1 : 1;
 }
 
 
-std::random_device rd;
-std::mt19937_64 e2(rd());
-std::uniform_int_distribution<uint64_t> dist;
+static std::random_device rd;
+static std::mt19937_64 e2(rd());
+static std::uniform_int_distribution<uint64_t> dist;
 
