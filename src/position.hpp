@@ -32,7 +32,7 @@ public:
 	}
 
 	uint64_t hash () const {
-		uint64_t current_hash;
+		uint64_t current_hash = turn == piece_color::WHITE ? 2103981289031988 : 0;
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
 				if(board[y][x].has_value())
@@ -40,14 +40,17 @@ public:
 
 			}
 		}
+
 		if(en_passant.has_value())
 			current_hash ^= transposition_table.en_passant_zobrist[en_passant.value()];
+
 		for(int y = 0; y < 2; y++) {
 			for(int x = 0; x < 2; x++){
 				if(can_castle[y][x])
 					current_hash ^= transposition_table.castle_zobrist[y][x];
 			}
 		}
+
 		return current_hash;
 	}
 
@@ -114,7 +117,7 @@ public:
 	
 	bool is_under_check(piece_color color) {
 		uint64_t targetted_squares = 0;
-		board_pos king_pos;
+		optional<board_pos> king_pos = std::nullopt;
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
 
@@ -128,7 +131,9 @@ public:
 					targetted_squares |= get_moves({ x, y });
 			}
 		}
-		return bitboard_get(targetted_squares, king_pos);
+		if(!king_pos.has_value())
+			return false;
+		return bitboard_get(targetted_squares, king_pos.value());
 	}
 
 	bool search_at_depth(std::vector<move>& old_best_moves, int depth, std::chrono::steady_clock::time_point then) const {
@@ -180,11 +185,12 @@ public:
 		int current_depth = 2;
 		float last_eval;
 		auto then = std::chrono::steady_clock::now();
-		do{
+		while(true){
 			if(search_at_depth(best_moves, current_depth, then))
 				break;
 			current_depth++;
-		}while(true);
+		}
+		// search_at_depth(best_moves, 4, then);
 		// std::cout << best_moves_size << "<- Best move max size " << best_moves.size() << "<- Best move size \n";
 		// TODO: On checkmate implementation check if best_moves.size() > 0
 		int selected_move = best_moves.size() == 1 ? 0 : std::rand() % best_moves.size();
@@ -271,7 +277,7 @@ public:
 					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
 
 					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
-						return 1920398.f + depth * 1'000'000;
+						return 1920398.f + depth * 1'000'000.f;
 					Position new_position = *this;
 					new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
 					float eval = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
@@ -282,22 +288,24 @@ public:
 				}
 			}
 		}
+
 		return alpha;
 	}
 
 	float negamax(float alpha, float beta, int depth, piece_color turn) {
 		float best_score = -10000000;
 		uint64_t current_hash = hash();
-		if(transposition_table.table.contains(current_hash) && transposition_table.table[current_hash].depth >= depth)
+		//TODO: Use find instead of contains
+		if(transposition_table.table.contains(current_hash)  && transposition_table.table[current_hash].depth == depth)
 			return transposition_table.table[current_hash].evaluation;
-		if (depth == 0)
-			return search_captures(alpha, beta);
+		// if (depth == 0)
+		// 	return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
+			
+		float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth);
+		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
 
-		// float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth, turn);
-		// transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
-
-		return evaluate_negamax(alpha, beta, depth);
+		return evaluation;
 	}
 
 };

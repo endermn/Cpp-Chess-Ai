@@ -33,9 +33,9 @@ int main(int argc, char* argv[]) {
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
-	// thread_sync sync = {.position = fen_to_position("r3k2r/ppp4p/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
-	piece_color engine_color = piece_color::BLACK;
+	piece_color engine_color = piece_color::WHITE;
 	
 	std::chrono::seconds time_black{10 * 60s};
 	std::chrono::seconds time_white{10 * 60s};
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	SDL_ShowWindow(win);
 
 	std::vector<position_times> old_positions;
-	std::vector<position_times> new_positions;
+	std::vector<position_times> new_positions;	
 	std::thread ai_move_thread;
 	uint64_t possible_moves = 0;
 	optional<board_pos> src_pos;
@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT && !sync.is_thinking && sync.position.turn != engine_color) {
 					board_pos pos = { event.button.x, event.button.y};
+					if(!pos.is_valid())
+						break;
 					
 					if (!src_pos.has_value())
 					{

@@ -22,6 +22,7 @@ void engine_thread_func(thread_sync *sync) {
 	auto stop = std::chrono::high_resolution_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << '\n';
 } 
+
 void rollback_position(std::vector<position_times>& last_positions, uint64_t& possible_moves, optional<board_pos>& src_pos, thread_sync& sync, std::chrono::seconds& time_black, std::chrono::seconds& time_white) {
 	if(last_positions.size() > 0) {
 		possible_moves = 0;
