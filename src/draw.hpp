@@ -24,6 +24,7 @@ piece_type promote_message(SDL_Window* win) {
 		}
 	};
 
+
 	SDL_MessageBoxData message_box_data = {
 		.flags = 0,
 		.window = win,
@@ -42,6 +43,21 @@ void draw_digits(float x, float y, SDL_Renderer* rend, SDL_Texture* digits_image
 	SDL_RenderCopyF(rend, digits_image, &src_rect, &dst_rect);
 }
 
+void draw_timers(SDL_Renderer* rend, SDL_Texture* digits_image, seconds b_time, seconds w_time) {
+
+	draw_digits(8, 0, rend, digits_image, int(b_time.count()) / 600, 1);
+	draw_digits(8.5, 0, rend, digits_image, int(b_time.count()) / 60 % 10, 1);
+
+	draw_digits(8, 7, rend, digits_image, int(w_time.count()) / 600, 1);
+	draw_digits(8.5, 7, rend, digits_image, int(w_time.count()) / 60 % 10, 1);
+
+	draw_digits(9, 0, rend, digits_image, int(b_time.count()) % 60 / 10, 0.9);
+	draw_digits(9.5, 0, rend, digits_image, int(b_time.count()) % 60 % 10, 0.9);
+
+	draw_digits(9, 7, rend, digits_image, int(w_time.count()) % 60 / 10, 0.9);
+	draw_digits(9.5, 7, rend, digits_image, int(w_time.count()) % 60 % 10, 0.9);
+
+}
 
 void draw(
 	seconds b_time, 
@@ -52,9 +68,12 @@ void draw(
 	uint64_t bitboard, 
 	piece_color turn
 ) {
+
 	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 	SDL_RenderClear(rend);
+
 	bool is_white = true;
+
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
 			is_white ? SDL_SetRenderDrawColor(rend, 255, 255, 255, 255) : SDL_SetRenderDrawColor(rend, 53, 173, 107, 255);
@@ -62,8 +81,7 @@ void draw(
 				is_white = !is_white;
 			SDL_Rect dst_rect = {x, y, 1, 1};
 			SDL_RenderFillRect(rend, &dst_rect);
-			if (bitboard_get(bitboard, { x, y }))
-			{
+			if (bitboard_get(bitboard, { x, y })) {
 				SDL_SetRenderDrawColor(rend, 200, 100, 100, 130);
 				SDL_RenderFillRect(rend, &dst_rect);
 			}
@@ -76,17 +94,7 @@ void draw(
 
 
 	
-	draw_digits(8, 0, rend, digits_image, int(b_time.count()) / 600, 1);
-	draw_digits(8.5, 0, rend, digits_image, int(b_time.count()) / 60 % 10, 1);
-
-	draw_digits(8, 7, rend, digits_image, int(w_time.count()) / 600, 1);
-	draw_digits(8.5, 7, rend, digits_image, int(w_time.count()) / 60 % 10, 1);
-
-	draw_digits(9, 0, rend, digits_image, int(b_time.count()) % 60 / 10, 0.9);
-	draw_digits(9.5, 0, rend, digits_image, int(b_time.count()) % 60 % 10, 0.9);
-
-	draw_digits(9, 7, rend, digits_image, int(w_time.count()) % 60 / 10, 0.9);
-	draw_digits(9.5, 7, rend, digits_image, int(w_time.count()) % 60 % 10, 0.9);
+	draw_timers(rend, digits_image, b_time, w_time);
 
 
 	SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);

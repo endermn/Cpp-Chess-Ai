@@ -14,9 +14,10 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
 
-	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, 0);
-	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
-
+	// SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
+	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
+	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC );
+	// SDL_SetWindowShape(win, )
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
 	// thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
 	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
-	piece_color engine_color = piece_color::WHITE;
+	piece_color engine_color = piece_color::BLACK;
 	
 	seconds time_black{10 * 60s};
 	seconds time_white{10 * 60s};
@@ -98,12 +99,23 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case SDL_KEYDOWN:
-				if (event.key.keysym.sym == SDLK_LEFT && !sync.is_thinking && old_positions.size() > 0) {
-					new_positions.push_back({sync.position, time_black, time_white});
-					rollback_position(old_positions, possible_moves, src_pos, sync, time_black, time_white);
-				} else if (event.key.keysym.sym == SDLK_RIGHT && !sync.is_thinking && new_positions.size() > 0){
-					old_positions.push_back({sync.position, time_black, time_white});
-					rollback_position(new_positions, possible_moves, src_pos, sync, time_black, time_white);
+				switch(event.key.keysym.sym) {
+				case SDLK_LEFT:
+					if(!sync.is_thinking && old_positions.size() > 0) {
+						new_positions.push_back({sync.position, time_black, time_white});
+						rollback_position(old_positions, possible_moves, src_pos, sync, time_black, time_white);
+					}
+					break;
+				case SDLK_RIGHT:
+					if (event.key.keysym.sym == SDLK_RIGHT && !sync.is_thinking && new_positions.size() > 0){
+						old_positions.push_back({sync.position, time_black, time_white});
+						rollback_position(new_positions, possible_moves, src_pos, sync, time_black, time_white);
+					}
+					break;
+				case SDLK_F11:
+					auto flag = SDL_GetWindowFlags(win);
+					bool is_fullscreen = flag & SDL_WINDOW_FULLSCREEN;
+					SDL_SetWindowFullscreen(win, is_fullscreen ? 0 : SDL_WINDOW_FULLSCREEN);
 				}
 				break;
 			default:
