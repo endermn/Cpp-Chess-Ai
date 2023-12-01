@@ -43,7 +43,7 @@ void draw_digits(float x, float y, SDL_Renderer* rend, SDL_Texture* digits_image
 }
 
 
-void draw(std::chrono::seconds b_time, std::chrono::seconds w_time, SDL_Renderer* rend, array<array<optional<piece>, 8>, 8> const &board, SDL_Texture* pieces_image, SDL_Texture* digits_image , uint64_t bitboard, bool is_thinking) {
+void draw(std::chrono::seconds b_time, std::chrono::seconds w_time, SDL_Renderer* rend, array<array<optional<piece>, 8>, 8> const &board, SDL_Texture* pieces_image, SDL_Texture* digits_image , uint64_t bitboard, piece_color turn) {
 	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 	SDL_RenderClear(rend);
 	bool is_white = true;
@@ -82,7 +82,7 @@ void draw(std::chrono::seconds b_time, std::chrono::seconds w_time, SDL_Renderer
 
 
 	SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
-	SDL_Rect dst_rect = {9, is_thinking ? 1 : 6, 1, 1};
+	SDL_Rect dst_rect = {9, turn == piece_color::BLACK ? 1 : 6, 1, 1};
 	SDL_RenderFillRect(rend, &dst_rect);
 
 	SDL_RenderPresent(rend);

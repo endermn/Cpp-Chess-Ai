@@ -13,10 +13,10 @@ using namespace std::literals;
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
-	
-	transposition_table.init_table();
+
 	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, 0);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
 
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
-	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
+	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	piece_color engine_color = piece_color::WHITE;
 	
@@ -90,8 +90,8 @@ int main(int argc, char* argv[]) {
 							old_positions.push_back({sync.position, time_black, time_white});
 							sync.position.make_move(pos, src_pos.value(), win);
 							new_positions.clear();
-							// position.ai_move(piece_color(!bool(position.turn)));
 							play_engine(sync, ai_move_thread);
+							// position.ai_move(piece_color(!bool(position.turn)));
 
 							//turn = piece_color(!bool(turn));
 						}
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		// std::lock_guard<std::mutex> lock(sync.mutex);
-		draw(time_black ,time_white , rend, sync.position.board, pieces_image, digits_image,possible_moves, sync.is_thinking);
+		draw(time_black ,time_white , rend, sync.position.board, pieces_image, digits_image,possible_moves, sync.position.turn);
 	}
 
 	SDL_DestroyRenderer(rend);

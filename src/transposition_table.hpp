@@ -23,7 +23,7 @@ private:
 			en_passant_zobrist[y] = dist(e2);
 	}
 public:
-	void init_table() {
+	TranspositionTable() {
 		init_pieces();
 		init_castles();
 		init_en_passants();

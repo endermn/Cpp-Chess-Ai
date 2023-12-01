@@ -4,7 +4,7 @@
 #include "../src/common.hpp"
 #include "../src/draw.hpp"
 #include "../src/transposition_table.hpp"
-#include "../src/piece_goodness.hpp"
+#include "../src/piece_goodnesses.hpp"
 #include "../src/piece_moves.hpp"
 #include "../src/position.hpp"
 #include "../src/fen.hpp"

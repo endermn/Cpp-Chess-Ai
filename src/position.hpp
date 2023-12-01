@@ -95,7 +95,8 @@ public:
 					break;
 				}
 
-				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME ? 1 : 0][int(src_piece.type)][src_piece.color == piece_color::BLACK ? 7 - y : y][x];
+				eval += get_color_value(src_piece.color) * 0.01 * piece_goodness;
 				
 				eval += get_color_value(src_piece.color) * get_piece_value(src_piece.type); //array_of_values[int(src_piece.type)];
 			}
@@ -208,7 +209,7 @@ public:
 				capture_piece_type = board[new_move.dst_pos.y][new_move.dst_pos.x]->type;
 				move_score += 10 * (get_piece_value(capture_piece_type.value()) - get_piece_value(move_piece_type));
 				if(capture_piece_type == piece_type::KING)
-					move_score += 10000;
+					move_score += 10'000;
 			}
 
 			if (move_piece_type == piece_type::PAWN && (new_move.dst_pos.y == 0 || new_move.dst_pos.y == 7)) {
@@ -277,7 +278,7 @@ public:
 					board_pos dst_pos = { static_cast<int>(index) % 8, static_cast<int>(index) / 8 };
 
 					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
-						return 1920398.f + depth * 1'000'000.f;
+						return 1'000'000.f + depth * 1'000'000.f;
 					Position new_position = *this;
 					new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
 					float eval = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
@@ -293,15 +294,15 @@ public:
 	}
 
 	float negamax(float alpha, float beta, int depth, piece_color turn) {
-		float best_score = -10000000;
+		float best_score = -10'000'000.f;
 		uint64_t current_hash = hash();
-		//TODO: Use find instead of contains
-		if(transposition_table.table.contains(current_hash)  && transposition_table.table[current_hash].depth == depth)
+
+		if(transposition_table.table.contains(current_hash)  && transposition_table.table[current_hash].depth >= depth)
 			return transposition_table.table[current_hash].evaluation;
 		// if (depth == 0)
 		// 	return search_captures(alpha, beta);
 			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
-			
+
 		float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth);
 		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
 

@@ -1,5 +1,5 @@
 // PIECE SQUARE TABLES 
-static constexpr float piece_goodness[2][6][8][8] = {
+static constexpr float piece_goodnesses[2][6][8][8] = {
 	{
 		// King
 		{
