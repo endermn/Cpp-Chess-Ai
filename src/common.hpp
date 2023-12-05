@@ -29,8 +29,6 @@ using namespace std::chrono;
 
 const int SQUARE_SIZE = 75;
 
-
-
 enum class piece_color : bool {
 	WHITE,
 	BLACK,
@@ -69,47 +67,11 @@ struct board_pos {
 	}
 	friend bool operator==(board_pos, board_pos) = default;
 };
-struct piece {
-	piece_color color;
-	piece_type type;
 
-	friend bool operator==(piece, piece) = default;
-};
-struct move {
-	board_pos dst_pos;
-	board_pos src_pos;
-	bool is_capture;
-	float score = 0;
-};
-
-namespace piece_offsets {
-	static constexpr board_pos BISHOP[4] = {{-1,-1}, {-1,1}, {1,1}, {1, -1}};
-	static constexpr board_pos KNIGHT[8] = { {-2, 1}, {2, 1}, {-2, -1}, {2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2} };
-	static constexpr board_pos ROOK[4] = { {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
-	static constexpr board_pos KING_QUEEN[8] = { {1,1}, {-1, 1}, {-1, -1}, {1, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
-};
-
-static constexpr std::array<piece_type, 8> start_row = {
-	piece_type::ROOK, piece_type::KNIGHT, piece_type::BISHOP, piece_type::QUEEN,
-	piece_type::KING, piece_type::BISHOP, piece_type::KNIGHT, piece_type::ROOK,
-};
-
-static void bitboard_set(uint64_t& bitboard, board_pos pos) {
-	if(!pos.is_valid())
-		throw std::runtime_error("bitboard_set: Invalid position");
-	bitboard |= 1ULL << (pos.y * 8 + pos.x);
-}
-
-static bool bitboard_get(uint64_t bitboard, board_pos pos) {
-	return bitboard & (1ULL << (pos.y * 8 + pos.x));
-}
 static void messagebox_error(std::string outside_text, std::string inside_text) {
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, outside_text.data(), inside_text.data(), nullptr);
 }
 
-static int get_color_value(piece_color color) {
-    return color == piece_color::BLACK ? -1 : 1;
-}
 
 
 static std::random_device rd;

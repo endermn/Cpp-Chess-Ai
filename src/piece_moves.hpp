@@ -161,7 +161,7 @@ public:
 				else
 					src_piece.type = piece_type::QUEEN;
 			}
-			if (target == board_pos{ src_pos.x, double_move_y })
+			if (target == board_pos{ src_pos.x, double_move_y } && (src_pos.y == 1 || src_pos.y == 6))
 				en_passant = src_pos.x;
 
 			if (target == board_pos{ src_pos.x + 1, next_y } && !board[target.y][target.x].has_value()) {

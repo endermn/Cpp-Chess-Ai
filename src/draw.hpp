@@ -69,14 +69,14 @@ void draw(
 	piece_color turn
 ) {
 
-	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
 	SDL_RenderClear(rend);
 
 	bool is_white = true;
 
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
-			is_white ? SDL_SetRenderDrawColor(rend, 255, 255, 255, 255) : SDL_SetRenderDrawColor(rend, 53, 173, 107, 255);
+			is_white ? SDL_SetRenderDrawColor(rend, 0xFB, 0xF7, 0xE9, 255) : SDL_SetRenderDrawColor(rend, 0xA6, 0xCF, 0xCA, 255);
 			if(x != 7)
 				is_white = !is_white;
 			SDL_Rect dst_rect = {x, y, 1, 1};
@@ -94,12 +94,15 @@ void draw(
 
 
 	
-	draw_timers(rend, digits_image, b_time, w_time);
 
 
-	SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
-	SDL_Rect dst_rect = {9, turn == piece_color::BLACK ? 1 : 6, 1, 1};
+	SDL_SetRenderDrawColor(rend, 173, 235, 173, 255);
+	SDL_Rect dst_rect = {8, turn == piece_color::BLACK ? 0 : 7, 2, 1};
 	SDL_RenderFillRect(rend, &dst_rect);
+	SDL_SetRenderDrawColor(rend, 0xE0, 0xE0, 0xE0, 255);
+	SDL_Rect dst = {8, turn == piece_color::BLACK ? 7 : 0, 2, 1};
+	SDL_RenderFillRect(rend, &dst);
+	draw_timers(rend, digits_image, b_time, w_time);
 
 	SDL_RenderPresent(rend);
 }

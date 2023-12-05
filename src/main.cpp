@@ -1,4 +1,6 @@
 #include "common.hpp"
+#include "pieces.hpp"
+#include "bitboard.hpp"
 #include "draw.hpp"
 #include "transposition_table.hpp"
 #include "piece_goodness.hpp"
@@ -34,10 +36,11 @@ int main(int argc, char* argv[]) {
 
 
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	// thread_sync sync = {.position = fen_to_position("8/1K4P1/8/8/8/8/k7/8 w - - 0 1")};
-	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
+	thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
+	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
-	piece_color engine_color = piece_color::BLACK;
+	piece_color engine_color = piece_color::WHITE;
 	
 	seconds time_black{10 * 60s};
 	seconds time_white{10 * 60s};

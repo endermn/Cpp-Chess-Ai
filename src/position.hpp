@@ -57,7 +57,7 @@ public:
 	}
 
 	float evaluate() const{
-		float eval = 0;
+		float score = 0;
 
 		game_phase phase = get_game_phase();
 
@@ -76,23 +76,23 @@ public:
 						board_pos y_pos = {.x = x + i, .y = y - color_value};
 						if(!y_pos.is_valid())
 							break;
-						if (board[y_pos.y][x + i].has_value())
-							eval += color_value * 0.1;
+						if (board[y_pos.y][y_pos.x].has_value() && board[y_pos.y][y_pos.x]->color != board[y][x]->color)
+							score += color_value * 0.1;
 						if (!board[y_pos.y][x].has_value())
-							eval -= color_value * 0.2;
+							score -= color_value * 0.2;
 					}
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
 				case piece_type::PAWN:
 					if(x < 7 && x > 0) {
-						if(!(board[y + color_value][x + 1]->type == piece_type::PAWN ||
-						board[y + color_value][x - 1]->type == piece_type::PAWN)) 
-							eval -= color_value * 0.01f;
+						if(!(board[y - color_value][x + 1]->type == piece_type::PAWN ||
+						board[y - color_value][x - 1]->type == piece_type::PAWN)) 
+							score -= color_value * 0.01f;
 						else 
-							eval += color_value * 0.01f;
+							score += color_value * 0.01f;
 					}
-					if (board[y + color_value][x]->type == board[y][x]->type)
-						eval -= color_value * 0.5f;
+					if (board[y - color_value][x]->type == piece_type::PAWN  && board[y - color_value][x]->color == board[y][x]->color)
+						score += color_value * 0.01f;
 					break;
 				default:
 					break;
@@ -100,28 +100,25 @@ public:
 
 				int goodness_y = src_piece.color == piece_color::BLACK ? 7 - y : y;
 				float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME][int(src_piece.type)][goodness_y][x];
-				eval += color_value * 0.01 * piece_goodness;
+				score += color_value * 0.01 * piece_goodness;
 				
-				eval += color_value * get_piece_value(src_piece.type);
+				score += color_value * get_piece_value(src_piece.type);
 			}
 		}
 
 
 		if(phase == game_phase::ENDGAME){
 			std::array<int, 2> mobility_score = targetted_squares_count();
-			eval += 0.001 * (mobility_score[0] - mobility_score[1]);
+			score += 0.001 * (mobility_score[0] - mobility_score[1]);
 			float delta_x = king_positions[0]->x - king_positions[1]->x;
 			float delta_y = king_positions[0]->y - king_positions[1]->y;
-			eval *= 3.f/sqrt(pow(delta_x, 2) + pow(delta_y , 2)) + 1;
+			score *= 3.f/sqrt(pow(delta_x, 2) + pow(delta_y , 2)) + 1;
 		}
-		// if(phase == game_phase::ENDGAME)
-		// if(king_positions[0].has_value() && king_positions[1].has_value())
-		// 	eval *= 3/sqrt(pow(king_positions[0]->x - king_positions[1]->x, 2) + pow(king_positions[0]->y - king_positions[1]->y, 2))  + 1;
-		
-		return eval;
+
+		return score;
 	}
 
-	
+
 	bool is_under_check(piece_color color) {
 		uint64_t targetted_squares = 0;
 		optional<board_pos> king_pos = std::nullopt;
@@ -143,8 +140,8 @@ public:
 		return bitboard_get(targetted_squares, king_pos.value());
 	}
 
-	bool search_at_depth(std::vector<move>& old_best_moves, int depth, steady_clock::time_point then) const {
-		std::vector<move> best_moves;
+	bool search_at_depth(std::vector<Move>& old_best_moves, int depth, steady_clock::time_point then) const {
+		std::vector<Move> best_moves;
 		size_t best_moves_size = 0;
 		float max = INT_MIN;
 		for (int y = 0; y < board.size(); y++) {
@@ -186,8 +183,8 @@ public:
 		return false;
 	}
 
-	move ai_move() const {
-		std::vector<move> best_moves;
+	Move ai_move() const {
+		std::vector<Move> best_moves;
 		best_moves.reserve(4);
 		int current_depth = 2;
 		float last_eval;
@@ -201,26 +198,26 @@ public:
 		return best_moves[best_moves.size() == 1 ? 0 : std::rand() % best_moves.size()];
 	}
 
-	void order_moves(std::vector<move>& moves) const {
-		for (move &new_move : moves) {
+	void order_moves(std::vector<Move>& moves) const {
+		for (Move &move : moves) {
 			float move_score = 0;
-			piece_type move_piece_type = board[new_move.src_pos.y][new_move.src_pos.x]->type;
-			std::optional<piece_type> capture_piece_type = std::nullopt;
+			piece_type move_piece_type = board[move.src_pos.y][move.src_pos.x]->type;
 
-			if (board[new_move.dst_pos.y][new_move.dst_pos.x].has_value()) {
-				capture_piece_type = board[new_move.dst_pos.y][new_move.dst_pos.x]->type;
-				move_score += 10 * (get_piece_value(capture_piece_type.value()) - get_piece_value(move_piece_type));
+			if (board[move.dst_pos.y][move.dst_pos.x].has_value()) {
+				piece_type capture_piece_type = board[move.dst_pos.y][move.dst_pos.x]->type;
+				move_score += 10 * (get_piece_value(capture_piece_type) - get_piece_value(move_piece_type));
+
 				if(capture_piece_type == piece_type::KING)
-					move_score += 10'000;
+					move_score += 1'000'000;
 			}
 
-			if (move_piece_type == piece_type::PAWN && (new_move.dst_pos.y == 0 || new_move.dst_pos.y == 7)) {
-				move_score += 10 * get_piece_value(piece_type::QUEEN);
+			if (move_piece_type == piece_type::PAWN && (move.dst_pos.y == 0 || move.dst_pos.y == 7)) {
+				move_score += get_piece_value(piece_type::QUEEN);
 			}
-			new_move.score = move_score;
+			move.score = move_score;
 		}
 		// moves.erase(std::remove(moves.begin(), moves.end(), 0), moves.end());
-		std::sort(moves.begin(), moves.end(), [](const move& a, const move& b) {
+		std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
 			return a.score > b.score;
 		});
 
@@ -228,12 +225,14 @@ public:
 
 
 
-	float search_captures(float alpha, float beta) const {
-		float eval = get_color_value(turn) * evaluate();
-		if (eval >= beta)
+	float search_captures(float alpha, float beta, int depth) const {
+		float score = get_color_value(turn) * evaluate();
+		if (score >= beta)
 			return beta;
-		alpha = std::max(eval, alpha);
-		std::vector<move> moves;
+		alpha = std::max(score, alpha);
+		if(depth == 0)
+			return alpha;
+		std::vector<Move> moves;
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -255,13 +254,10 @@ public:
 		for (int i = 0; i < moves.size(); i++) {
 			Position new_position = *this;
 			new_position.make_move(moves[i].dst_pos, moves[i].src_pos, nullptr);
-			eval = -new_position.search_captures(-beta, -alpha);
-			// eval = -new_position.evaluate();
-			if (eval >= beta)
+			score = -new_position.search_captures(-beta, -alpha, depth - 1);
+			if (score >= beta)
 				return beta;
-			// if(eval > alpha)
-			// 	alpha = eval;
-			alpha = std::max(eval, alpha);
+			alpha = std::max(score, alpha);
 		}
 
 		return alpha;
@@ -281,12 +277,13 @@ public:
 
 					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
 						return 1'000'000.f + depth * 1'000'000.f;
+
 					Position new_position = *this;
 					new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
-					float eval = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
-					if (eval >= beta)
+					float score = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
+					if (score >= beta)
 						return beta;
-					alpha = std::max(alpha, eval);
+					alpha = std::max(alpha, score);
 
 				}
 			}
@@ -296,16 +293,13 @@ public:
 	}
 
 	float negamax(float alpha, float beta, int depth, piece_color turn) {
-		float best_score = -10'000'000.f;
+		float best_score = -1'000'000.f;
 		uint64_t current_hash = hash();
 
-		if(transposition_table.table.contains(current_hash)  && transposition_table.table[current_hash].depth >= depth)
-			return transposition_table.table[current_hash].evaluation;
-		// if (depth == 0)
-		// 	return search_captures(alpha, beta);
-			//return turn == piece_color::BLACK ? -evaluate() : evaluate();
+		if(auto it = transposition_table.table.find(current_hash); it != transposition_table.table.end() && it->second.depth >= depth)
+			return it->second.evaluation;
 
-		float evaluation = depth == 0 ? search_captures(alpha, beta) : evaluate_negamax(alpha, beta, depth);
+		float evaluation = depth == 0 ? search_captures(alpha, beta, 2) : evaluate_negamax(alpha, beta, depth);
 		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
 
 		return evaluation;
