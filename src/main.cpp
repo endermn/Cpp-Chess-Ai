@@ -16,16 +16,17 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
 
-	// SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
 	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
+	SDL_ShowWindow(win);
+
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC );
-	// SDL_SetWindowShape(win, )
+	
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
 
 	if (!pieces_image || !digits_image) {
-		messagebox_error("FAILED TO LOAD SPRITES", "Failed to load spritesheets");
+		messagebox_error("FAILED TO LOAD SPRITES", "Failed to load sprites");
 		exit(1);
 	}
 
@@ -34,19 +35,19 @@ int main(int argc, char* argv[]) {
 	SDL_RenderSetLogicalSize(rend, 10, 8);
 	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
 
-
+// Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
-	thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
-	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
+	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	piece_color engine_color = piece_color::WHITE;
 	
-	seconds time_black{10 * 60s};
+	seconds time_black{1 * 1s};
 	seconds time_white{10 * 60s};
-	auto now = steady_clock::now();
 
-	SDL_ShowWindow(win);
+	steady_clock::time_point now = steady_clock::now();
+
 
 	std::vector<position_times> old_positions;
 	std::vector<position_times> new_positions;
@@ -58,9 +59,13 @@ int main(int argc, char* argv[]) {
 	if(sync.position.turn == engine_color)
 		play_engine(sync, ai_move_thread);
 
+	Canvas canvas{rend, digits_image, pieces_image};
+
 	while (true) {
-		if (time_white.count() <= 0 || time_black.count() <= 0)
+		if (time_white.count() <= 0 || time_black.count() <= 0) {
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Game Ended", "Game ended, time ran out", nullptr);
 			exit(0);
+		}
 
 		if (duration_cast<seconds>(steady_clock::now() - now).count() >= 1) {
 			sync.position.turn == piece_color::WHITE ? time_white-- : time_black--;
@@ -72,35 +77,34 @@ int main(int argc, char* argv[]) {
 			switch (event.type) {
 			case SDL_QUIT:
 				exit(0);
-			case SDL_MOUSEBUTTONDOWN:
-				if (event.button.button == SDL_BUTTON_LEFT && !sync.is_thinking && sync.position.turn != engine_color) {
-					board_pos pos = { event.button.x, event.button.y};
-					if(!pos.is_valid())
-						break;
-					
-					if (!src_pos.has_value()) {
-						std::lock_guard<std::mutex> lock(sync.mutex);
-						if (sync.position.board[pos.y][pos.x].has_value()) {
-							if (sync.position.turn == sync.position.board[pos.y][pos.x]->color) {
-								src_pos = pos;
-								possible_moves = sync.position.get_moves(pos);
-							}
-						}
-					} else {
-						if (bitboard_get(possible_moves, pos)) {
-							std::lock_guard<std::mutex> lock(sync.mutex);
-							old_positions.push_back({sync.position, time_black, time_white});
-							sync.position.make_move(pos, src_pos.value(), win);
-							new_positions.clear();
-							play_engine(sync, ai_move_thread);
-						}
+			case SDL_MOUSEBUTTONDOWN: {
+				if (event.button.button != SDL_BUTTON_LEFT || sync.is_thinking || sync.position.turn == engine_color)
+					break;
 
-						possible_moves = 0;
-						src_pos = std::nullopt;
+				board_pos pos = {event.button.x, event.button.y};
+				if(!pos.is_valid())
+					break;
+				
+				if (!src_pos.has_value()) {
+					std::lock_guard<std::mutex> lock(sync.mutex);
+					optional<piece> src_piece = sync.position.board[pos.y][pos.x];
+					if (src_piece.has_value() && sync.position.turn == src_piece->color) {
+						src_pos = pos;
+						possible_moves = sync.position.get_moves(pos);
 					}
-				}
-				break;
+				} else {
+					if (bitboard_get(possible_moves, pos)) {
+						std::lock_guard<std::mutex> lock(sync.mutex);
+						old_positions.push_back({sync.position, time_black, time_white});
+						sync.position.make_move(pos, src_pos.value(), win);
+						new_positions.clear();
+						play_engine(sync, ai_move_thread);
+					}
 
+					possible_moves = 0;
+					src_pos = std::nullopt;
+				}
+			} break;
 			case SDL_KEYDOWN:
 				switch(event.key.keysym.sym) {
 				case SDLK_LEFT:
@@ -126,7 +130,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		// std::lock_guard<std::mutex> lock(sync.mutex);
-		draw(time_black ,time_white , rend, sync.position.board, pieces_image, digits_image,possible_moves, sync.position.turn);
+		canvas.draw(time_black ,time_white, sync.position.board, possible_moves, sync.position.turn);
 	}
 
 	SDL_DestroyRenderer(rend);

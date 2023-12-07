@@ -1,12 +1,14 @@
 
 Position fen_to_position(std::string fen) {
 	std::unordered_map<char, piece_type> umap;
+
 	umap['r'] = piece_type::ROOK;
 	umap['n'] = piece_type::KNIGHT;
 	umap['b'] = piece_type::BISHOP;
 	umap['q'] = piece_type::QUEEN;
 	umap['k'] = piece_type::KING;
 	umap['p'] = piece_type::PAWN;
+
 	Position position;
 	bool after_board = false;
 

@@ -1,3 +1,5 @@
+TranspositionTable transposition_table;
+
 class Position : public PieceMoves {
 public:
 	game_phase get_game_phase() const{
@@ -35,10 +37,10 @@ public:
 		uint64_t current_hash = turn == piece_color::WHITE ? 2103981289031988 : 0;
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
-				if(board[y][x].has_value()) {
-					int hash_index = transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type);
-					current_hash ^= transposition_table.piece_zobrist[y][x][hash_index];
-				}
+				if(!board[y][x].has_value())
+					continue;
+				int hash_index = transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type);
+				current_hash ^= transposition_table.piece_zobrist[y][x][hash_index];
 
 			}
 		}
@@ -140,8 +142,8 @@ public:
 		return bitboard_get(targetted_squares, king_pos.value());
 	}
 
-	bool search_at_depth(std::vector<Move>& old_best_moves, int depth, steady_clock::time_point then) const {
-		std::vector<Move> best_moves;
+	bool search_at_depth(std::vector<move>& old_best_moves, int depth, steady_clock::time_point then) const {
+		std::vector<move> best_moves;
 		size_t best_moves_size = 0;
 		float max = INT_MIN;
 		for (int y = 0; y < board.size(); y++) {
@@ -157,24 +159,26 @@ public:
 					unsigned long index = std::countr_zero(move_bitboard);
 					move_bitboard &= move_bitboard - 1;
 					board_pos dst_pos = {int(index) % 8, int(index) / 8 };
-						
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
-					if (!new_position.is_under_check(turn)) {
-						float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
-						std::cout << depth << '\n';
-						// std::cout << transposition_table.table.size();
-						if (evaluation > max) {
-							max = evaluation;
-							best_moves.clear();
-							best_moves.push_back({ dst_pos, {x, y} });
-							best_moves_size = std::max(best_moves.size(), best_moves_size);
-						}
-						else if (evaluation == max) {
-							best_moves.push_back({ dst_pos, {x, y} });
-							best_moves_size = std::max(best_moves.size(), best_moves_size);
-						}
+		
+					if (new_position.is_under_check(turn))
+						continue;
+
+					float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
+					std::cout << depth << '\n';
+					
+					if (evaluation > max) {
+						max = evaluation;
+						best_moves.clear();
 					}
+
+					if(evaluation >= max) {
+						best_moves.push_back({ dst_pos, {x, y} });
+						best_moves_size = std::max(best_moves.size(), best_moves_size);
+					}
+
+
 				}
 			}
 		}
@@ -183,8 +187,8 @@ public:
 		return false;
 	}
 
-	Move ai_move() const {
-		std::vector<Move> best_moves;
+	move ai_move() const {
+		std::vector<move> best_moves;
 		best_moves.reserve(4);
 		int current_depth = 2;
 		float last_eval;
@@ -198,26 +202,26 @@ public:
 		return best_moves[best_moves.size() == 1 ? 0 : std::rand() % best_moves.size()];
 	}
 
-	void order_moves(std::vector<Move>& moves) const {
-		for (Move &move : moves) {
+	void order_moves(std::vector<move>& moves) const {
+		for (move &current_move : moves) {
 			float move_score = 0;
-			piece_type move_piece_type = board[move.src_pos.y][move.src_pos.x]->type;
+			piece_type move_piece_type = board[current_move.src_pos.y][current_move.src_pos.x]->type;
 
-			if (board[move.dst_pos.y][move.dst_pos.x].has_value()) {
-				piece_type capture_piece_type = board[move.dst_pos.y][move.dst_pos.x]->type;
+			if (board[current_move.dst_pos.y][current_move.dst_pos.x].has_value()) {
+				piece_type capture_piece_type = board[current_move.dst_pos.y][current_move.dst_pos.x]->type;
 				move_score += 10 * (get_piece_value(capture_piece_type) - get_piece_value(move_piece_type));
 
 				if(capture_piece_type == piece_type::KING)
 					move_score += 1'000'000;
 			}
 
-			if (move_piece_type == piece_type::PAWN && (move.dst_pos.y == 0 || move.dst_pos.y == 7)) {
+			if (move_piece_type == piece_type::PAWN && (current_move.dst_pos.y == 0 || current_move.dst_pos.y == 7)) {
 				move_score += get_piece_value(piece_type::QUEEN);
 			}
-			move.score = move_score;
+			current_move.score = move_score;
 		}
 		// moves.erase(std::remove(moves.begin(), moves.end(), 0), moves.end());
-		std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
+		std::sort(moves.begin(), moves.end(), [](const move& a, const move& b) {
 			return a.score > b.score;
 		});
 
@@ -232,7 +236,7 @@ public:
 		alpha = std::max(score, alpha);
 		if(depth == 0)
 			return alpha;
-		std::vector<Move> moves;
+		std::vector<move> moves;
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {

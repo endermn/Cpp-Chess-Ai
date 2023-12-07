@@ -54,11 +54,6 @@ enum class piece_type : uint8_t {
 	PAWN,
 };
 
-struct zobrist_value {
-	float evaluation;
-	int depth;
-};
-
 struct board_pos {
 	int x;
 	int y;
@@ -71,10 +66,4 @@ struct board_pos {
 static void messagebox_error(std::string outside_text, std::string inside_text) {
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, outside_text.data(), inside_text.data(), nullptr);
 }
-
-
-
-static std::random_device rd;
-static std::mt19937_64 e2(rd());
-static std::uniform_int_distribution<uint64_t> dist;
 

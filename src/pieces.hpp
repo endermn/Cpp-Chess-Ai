@@ -4,7 +4,7 @@ struct piece {
 
 	friend bool operator==(piece, piece) = default;
 };
-struct Move {
+struct move {
 	board_pos dst_pos;
 	board_pos src_pos;
 	bool is_capture;
