@@ -23,7 +23,6 @@
 #include <SDL2/SDL_image.h>
 
 
-
 using std::optional, std::array;
 using namespace std::chrono;
 
@@ -66,4 +65,3 @@ struct board_pos {
 static void messagebox_error(std::string outside_text, std::string inside_text) {
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, outside_text.data(), inside_text.data(), nullptr);
 }
-

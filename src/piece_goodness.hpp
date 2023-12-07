@@ -138,15 +138,3 @@ static constexpr float piece_goodnesses[2][6][8][8] = {
 		}
 	},
 };
-
-static float get_piece_value(piece_type type) {
-	float piece_values[6] = {
-		200,
-		9.5,
-		3.33,
-		3.05,
-		5.63,
-		1,
-	};
-	return piece_values[int(type)];
-}

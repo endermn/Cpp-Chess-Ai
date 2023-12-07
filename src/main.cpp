@@ -4,8 +4,9 @@
 #include "draw.hpp"
 #include "transposition_table.hpp"
 #include "piece_goodness.hpp"
-#include "piece_moves.hpp"
-#include "position.hpp"
+#include "PieceMoves.hpp"
+#include "PieceChecks.hpp"
+#include "Position.hpp"
 #include "fen.hpp"
 #include "threads.hpp"
 
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
 
 	piece_color engine_color = piece_color::WHITE;
 	
-	seconds time_black{1 * 1s};
+	seconds time_black{10 * 60s};
 	seconds time_white{10 * 60s};
 
 	steady_clock::time_point now = steady_clock::now();

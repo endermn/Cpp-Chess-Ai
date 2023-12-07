@@ -1,63 +1,6 @@
-TranspositionTable transposition_table;
 
-class Position : public PieceMoves {
+class Position : public PieceChecks {
 public:
-	game_phase get_game_phase() const{
-		int total_major_pieces = 0;
-
-		for (int y = 0; y < board.size(); y++) 
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value() || board[y][x]->type == piece_type::PAWN || board[y][x]->type == piece_type::KING)
-					continue;
-				total_major_pieces++;
-
-			}
-		if (total_major_pieces <= 4)
-			return game_phase::ENDGAME;
-		else if (total_major_pieces <= 10)
-			return game_phase::MIDGAME;
-		else
-			return game_phase::OPENING;
-	}
-
-	std::array<int, 2> targetted_squares_count() const{
-		std::array<int, 2> mobility_score = {};
-
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value())
-					continue;
-				mobility_score[int(board[y][x].value().color)] += std::popcount(get_moves({x, y}));
-			}
-		}
-		return mobility_score;
-	}
-
-	uint64_t hash () const {
-		uint64_t current_hash = turn == piece_color::WHITE ? 2103981289031988 : 0;
-		for(int y = 0; y < 8; y++) {
-			for(int x = 0; x < 8; x++) {
-				if(!board[y][x].has_value())
-					continue;
-				int hash_index = transposition_table.piece_to_hash(board[y][x]->color, board[y][x]->type);
-				current_hash ^= transposition_table.piece_zobrist[y][x][hash_index];
-
-			}
-		}
-
-		if(en_passant.has_value())
-			current_hash ^= transposition_table.en_passant_zobrist[en_passant.value()];
-
-		for(int y = 0; y < 2; y++) {
-			for(int x = 0; x < 2; x++){
-				if(can_castle[y][x])
-					current_hash ^= transposition_table.castle_zobrist[y][x];
-			}
-		}
-
-		return current_hash;
-	}
-
 	float evaluate() const{
 		float score = 0;
 
@@ -120,28 +63,6 @@ public:
 		return score;
 	}
 
-
-	bool is_under_check(piece_color color) {
-		uint64_t targetted_squares = 0;
-		optional<board_pos> king_pos = std::nullopt;
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-
-				if (!board[y][x].has_value())
-					continue;
-
-				if (board[y][x]->type == piece_type::KING && board[y][x]->color == piece_color::BLACK)
-					king_pos = board_pos{ x, y };
-
-				if (board[y][x].value().color != color)
-					targetted_squares |= get_moves({ x, y });
-			}
-		}
-		if(!king_pos.has_value())
-			return false;
-		return bitboard_get(targetted_squares, king_pos.value());
-	}
-
 	bool search_at_depth(std::vector<move>& old_best_moves, int depth, steady_clock::time_point then) const {
 		std::vector<move> best_moves;
 		size_t best_moves_size = 0;
@@ -187,7 +108,7 @@ public:
 		return false;
 	}
 
-	move ai_move() const {
+	move get_best_moves() const {
 		std::vector<move> best_moves;
 		best_moves.reserve(4);
 		int current_depth = 2;
