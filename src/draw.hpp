@@ -38,7 +38,7 @@ public:
 		seconds b_time, 
 		seconds w_time,
 		array<array<optional<piece>, 8>, 8> const &board, 
-		uint64_t bitboard, 
+		Bitboard bitboard, 
 		piece_color turn
 	) {
 
@@ -54,7 +54,7 @@ public:
 					is_white = !is_white;
 				SDL_Rect dst_rect = {x, y, 1, 1};
 				SDL_RenderFillRect(rend, &dst_rect);
-				if (bitboard_get(bitboard, { x, y })) {
+				if (bitboard.bitboard_get({ x, y })) {
 					SDL_SetRenderDrawColor(rend, 200, 100, 100, 130);
 					SDL_RenderFillRect(rend, &dst_rect);
 				}

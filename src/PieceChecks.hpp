@@ -69,7 +69,7 @@ public:
 	}
 
 	bool is_under_check(piece_color color) {
-		uint64_t targetted_squares = 0;
+		Bitboard targetted_squares;
 		optional<board_pos> king_pos = std::nullopt;
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -81,11 +81,11 @@ public:
 					king_pos = board_pos{ x, y };
 
 				if (board[y][x].value().color != color)
-					targetted_squares |= get_moves({ x, y });
+					targetted_squares.bitboard |= get_moves({ x, y });
 			}
 		}
 		if(!king_pos.has_value())
 			return false;
-		return bitboard_get(targetted_squares, king_pos.value());
+		return targetted_squares.bitboard_get(king_pos.value());
 	}
 };

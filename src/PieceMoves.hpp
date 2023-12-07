@@ -7,19 +7,19 @@ public:
 
 private:
 	uint64_t king_moves(board_pos src_pos) const {
-		uint64_t bitboard = 0;
+		Bitboard bitboard;
 		piece_color src_color = board[src_pos.y][src_pos.x].value().color;
 		for (board_pos i : piece_offsets::KING_QUEEN) {
 			board_pos dst = { i.x + src_pos.x , i.y + src_pos.y };
 			if (dst.is_valid() && (!board[dst.y][dst.x].has_value() || board[dst.y][dst.x].value().color != src_color))
-				bitboard_set(bitboard, dst);
+				bitboard.bitboard_set(dst);
 		}
 		if (can_castle[int(src_color)][int(castle_side::SHORT)]) {
 			board_pos dst_castle = { 6, src_pos.y };
 			if (board[dst_castle.y][7] == piece{.color = src_color, .type = piece_type::ROOK } &&
 				!board[src_pos.y][5].has_value() &&
 				!board[src_pos.y][6].has_value())
-				bitboard_set(bitboard, dst_castle);
+				bitboard.bitboard_set(dst_castle);
 		}
 		if (can_castle[int(src_color)][int(castle_side::LONG)]) {
 			board_pos dst_castle = { 2, src_pos.y };
@@ -27,13 +27,13 @@ private:
 				!board[src_pos.y][1].has_value() &&
 				!board[src_pos.y][2].has_value() &&
 				!board[src_pos.y][3].has_value())
-				bitboard_set(bitboard, dst_castle);
+				bitboard.bitboard_set(dst_castle);
 		}
-		return bitboard;
+		return bitboard.bitboard;
 	}
 
 	uint64_t bishop_moves(board_pos src_pos) const {
-		uint64_t bitboard = 0;
+		Bitboard bitboard;
 		for (board_pos i : piece_offsets::BISHOP)
 			for (int j = 1; j < 8; j++) {
 				board_pos diagonal = { src_pos.x + j * i.x , src_pos.y + j * i.y };
@@ -41,39 +41,39 @@ private:
 					break;
 				if (board[diagonal.y][diagonal.x].has_value()) {
 					if (board[diagonal.y][diagonal.x].value().color != board[src_pos.y][src_pos.x].value().color)
-						bitboard_set(bitboard, diagonal);
+						bitboard.bitboard_set(diagonal);
 					break;
 				}
-				bitboard_set(bitboard, diagonal);
+				bitboard.bitboard_set(diagonal);
 			}
-		return bitboard;
+		return bitboard.bitboard;
 	}
 
 	uint64_t knight_moves(board_pos src_pos) const {
-		uint64_t bitboard = 0;
+		Bitboard bitboard;
 		piece_color src_color = board[src_pos.y][src_pos.x].value().color;
 		for (board_pos i : piece_offsets::KNIGHT) {
 			board_pos dst = { i.x + src_pos.x , i.y + src_pos.y };
 			if (dst.is_valid() && (!board[dst.y][dst.x].has_value() || board[dst.y][dst.x].value().color != src_color))
-				bitboard_set(bitboard, dst);
+				bitboard.bitboard_set(dst);
 		}
-		return bitboard;
+		return bitboard.bitboard;
 	}
 
 	uint64_t rook_moves(board_pos src_pos) const {
-		uint64_t bitboard = 0;
+		Bitboard bitboard;
 		for (board_pos i : piece_offsets::ROOK)
 			for (int j = 1; j < 8; j++) {
 				board_pos diagonal = { src_pos.x + j * i.x , src_pos.y + j * i.y };
 				if (!diagonal.is_valid()) break;
 				if (board[diagonal.y][diagonal.x].has_value()) {
 					if (board[diagonal.y][diagonal.x].value().color != board[src_pos.y][src_pos.x].value().color)
-						bitboard_set(bitboard, diagonal);
+						bitboard.bitboard_set(diagonal);
 					break;
 				}
-				bitboard_set(bitboard, diagonal);
+				bitboard.bitboard_set(diagonal);
 			}
-		return bitboard;
+		return bitboard.bitboard;
 	}
 
 	uint64_t queen_moves(board_pos src_pos) const {
@@ -81,7 +81,7 @@ private:
 	}
 
 	uint64_t pawn_moves(board_pos src_pos) const {
-		uint64_t bitboard = 0;
+		Bitboard bitboard;
 
 		piece_color color = board[src_pos.y][src_pos.x].value().color;
 
@@ -91,7 +91,7 @@ private:
 		if (src_pos.x < 7){
 			if (optional<piece> dst = board[next_y][src_pos.x + 1];
 			dst.has_value() && dst.value().color != color) {
-				bitboard_set(bitboard, { src_pos.x + 1, next_y});
+				bitboard.bitboard_set({ src_pos.x + 1, next_y});
 			} else {
 				if (src_pos.x + 1 == en_passant &&
 					next_y == (color == piece_color::WHITE ? 2 : 5) &&
@@ -99,13 +99,13 @@ private:
 					board[src_pos.y][src_pos.x + 1]->type == piece_type::PAWN &&
 					board[src_pos.y][src_pos.x + 1]->color != board[src_pos.y][src_pos.x]->color
 					)
-						bitboard_set(bitboard, { src_pos.x + 1, next_y });
+						bitboard.bitboard_set({ src_pos.x + 1, next_y });
 			}
 		}
 		if (src_pos.x > 0) {
 			if (optional<piece> dst = board[next_y][src_pos.x - 1];
 			dst.has_value() && dst.value().color != color)
-				bitboard_set(bitboard, { src_pos.x - 1, next_y});
+				bitboard.bitboard_set({ src_pos.x - 1, next_y});
 			else 
 				if(src_pos.x - 1 == en_passant &&
 				next_y == (color == piece_color::WHITE ? 2 : 5) &&
@@ -113,16 +113,16 @@ private:
 				board[src_pos.y][src_pos.x - 1]->type == piece_type::PAWN &&
 				board[src_pos.y][src_pos.x - 1]->color != board[src_pos.y][src_pos.x]->color
 					)
-					bitboard_set(bitboard, {src_pos.x - 1, next_y});
+					bitboard.bitboard_set({src_pos.x - 1, next_y});
 		}
 		if (!board[next_y][src_pos.x].has_value()) {
 			if (!board[double_move_y][src_pos.x].has_value())
 				if (src_pos.y == (color == piece_color::WHITE ? 6 : 1))
-					bitboard_set(bitboard, { src_pos.x , double_move_y });
-			bitboard_set(bitboard, { src_pos.x, next_y });
+					bitboard.bitboard_set({ src_pos.x , double_move_y });
+			bitboard.bitboard_set({ src_pos.x, next_y });
 		}
 
-		return bitboard;
+		return bitboard.bitboard;
 	}
 
 public:

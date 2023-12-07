@@ -1,6 +1,6 @@
 #include "common.hpp"
 #include "pieces.hpp"
-#include "bitboard.hpp"
+#include "Bitboard.hpp"
 #include "draw.hpp"
 #include "transposition_table.hpp"
 #include "piece_goodness.hpp"
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
 
 // Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	// thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
+	thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
 	// thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
-	thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	piece_color engine_color = piece_color::WHITE;
 	
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	std::vector<position_times> new_positions;
 
 	std::thread ai_move_thread;
-	uint64_t possible_moves = 0;
+	Bitboard possible_moves;
 	optional<board_pos> src_pos;
 
 	if(sync.position.turn == engine_color)
@@ -91,10 +91,10 @@ int main(int argc, char* argv[]) {
 					optional<piece> src_piece = sync.position.board[pos.y][pos.x];
 					if (src_piece.has_value() && sync.position.turn == src_piece->color) {
 						src_pos = pos;
-						possible_moves = sync.position.get_moves(pos);
+						possible_moves.bitboard = sync.position.get_moves(pos);
 					}
 				} else {
-					if (bitboard_get(possible_moves, pos)) {
+					if (possible_moves.bitboard_get(pos)) {
 						std::lock_guard<std::mutex> lock(sync.mutex);
 						old_positions.push_back({sync.position, time_black, time_white});
 						sync.position.make_move(pos, src_pos.value(), win);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
 						play_engine(sync, ai_move_thread);
 					}
 
-					possible_moves = 0;
+					possible_moves.bitboard = 0;
 					src_pos = std::nullopt;
 				}
 			} break;
@@ -111,13 +111,13 @@ int main(int argc, char* argv[]) {
 				case SDLK_LEFT:
 					if(!sync.is_thinking && old_positions.size() > 0) {
 						new_positions.push_back({sync.position, time_black, time_white});
-						rollback_position(old_positions, possible_moves, src_pos, sync, time_black, time_white);
+						rollback_position(old_positions, possible_moves.bitboard, src_pos, sync, time_black, time_white);
 					}
 					break;
 				case SDLK_RIGHT:
 					if (event.key.keysym.sym == SDLK_RIGHT && !sync.is_thinking && new_positions.size() > 0){
 						old_positions.push_back({sync.position, time_black, time_white});
-						rollback_position(new_positions, possible_moves, src_pos, sync, time_black, time_white);
+						rollback_position(new_positions, possible_moves.bitboard, src_pos, sync, time_black, time_white);
 					}
 					break;
 				case SDLK_F11:
