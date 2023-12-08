@@ -1,6 +1,7 @@
 
 class Position : public PieceChecks {
 public:
+	// Returns an evaluation of the current chess position
 	float evaluate() const{
 		float score = 0;
 
@@ -15,16 +16,17 @@ public:
 
 				piece src_piece = board[y][x].value();
 				int color_value = get_color_value(src_piece.color);
+
 				switch(src_piece.type) {
 				case piece_type::KING:
 					for (int i = -1; i < 2; i++) {
-						board_pos y_pos = {.x = x + i, .y = y - color_value};
-						if(!y_pos.is_valid())
-							break;
-						if (board[y_pos.y][y_pos.x].has_value() && board[y_pos.y][y_pos.x]->color != board[y][x]->color)
+						board_pos dst_pos = {.x = x + i, .y = y - color_value};
+						if(!dst_pos.is_valid())
+							continue;
+						if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->color == src_piece.color)
 							score += color_value * 0.1;
-						if (!board[y_pos.y][x].has_value())
-							score -= color_value * 0.2;
+						if (!board[dst_pos.y][x].has_value() || board[dst_pos.y][x]->color != src_piece.color)
+							score -= color_value * 0.1;
 					}
 					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
 					break;
@@ -119,12 +121,13 @@ public:
 				break;
 			current_depth++;
 		}
+		// search_at_depth(best_moves, 4, then);
 		// TODO: On checkmate implementation check if best_moves.size() > 0
 		return best_moves[best_moves.size() == 1 ? 0 : std::rand() % best_moves.size()];
 	}
 
-	void order_moves(std::vector<move>& moves) const {
-		for (move &current_move : moves) {
+	void order_moves(std::vector<move>& captures) const {
+		for (move &current_move : captures) {
 			float move_score = 0;
 			piece_type move_piece_type = board[current_move.src_pos.y][current_move.src_pos.x]->type;
 
@@ -141,8 +144,8 @@ public:
 			}
 			current_move.score = move_score;
 		}
-		// moves.erase(std::remove(moves.begin(), moves.end(), 0), moves.end());
-		std::sort(moves.begin(), moves.end(), [](const move& a, const move& b) {
+		// captures.erase(std::remove(captures.begin(), captures.end(), 0), captures.end());
+		std::sort(captures.begin(), captures.end(), [](const move& a, const move& b) {
 			return a.score > b.score;
 		});
 
@@ -157,7 +160,7 @@ public:
 		alpha = std::max(score, alpha);
 		if(depth == 0)
 			return alpha;
-		std::vector<move> moves;
+		std::vector<move> captures;
 
 		for (int y = 0; y < board.size(); y++) {
 			for (int x = 0; x < board[y].size(); x++) {
@@ -170,15 +173,15 @@ public:
 					move_bitboard &= move_bitboard - 1;
 					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 					if (board[dst_pos.y][dst_pos.x].has_value())
-						moves.push_back({ dst_pos, { x, y }, true });
+						captures.push_back({ dst_pos, { x, y }, true });
 				}
 			}
 		}
 
-		order_moves(moves);
-		for (int i = 0; i < moves.size(); i++) {
+		order_moves(captures);
+		for (int i = 0; i < captures.size(); i++) {
 			Position new_position = *this;
-			new_position.make_move(moves[i].dst_pos, moves[i].src_pos, nullptr);
+			new_position.make_move(captures[i].dst_pos, captures[i].src_pos, nullptr);
 			score = -new_position.search_captures(-beta, -alpha, depth - 1);
 			if (score >= beta)
 				return beta;
@@ -224,7 +227,7 @@ public:
 		if(auto it = transposition_table.table.find(current_hash); it != transposition_table.table.end() && it->second.depth >= depth)
 			return it->second.evaluation;
 
-		float evaluation = depth == 0 ? search_captures(alpha, beta, 2) : evaluate_negamax(alpha, beta, depth);
+		float evaluation = depth == 0 ? search_captures(alpha, beta, 4) : evaluate_negamax(alpha, beta, depth);
 		transposition_table.table[current_hash] = {.evaluation = evaluation, .depth = depth};
 
 		return evaluation;

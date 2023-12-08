@@ -25,12 +25,6 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
-
-	if (!pieces_image || !digits_image) {
-		messagebox_error("FAILED TO LOAD SPRITES", "Failed to load sprites");
-		exit(1);
-	}
-
 	SDL_SetTextureScaleMode(digits_image, SDL_ScaleModeBest);
 	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 	SDL_RenderSetLogicalSize(rend, 10, 8);
@@ -38,8 +32,8 @@ int main(int argc, char* argv[]) {
 
 // Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
-	// thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
+	// thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
+	thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
 	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
 
 	piece_color engine_color = piece_color::WHITE;
@@ -130,7 +124,6 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 		}
-		// std::lock_guard<std::mutex> lock(sync.mutex);
 		canvas.draw(time_black ,time_white, sync.position.board, possible_moves, sync.position.turn);
 	}
 
@@ -140,3 +133,4 @@ int main(int argc, char* argv[]) {
 	SDL_Quit();
 	return 0;
 }
+

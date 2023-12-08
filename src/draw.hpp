@@ -8,6 +8,12 @@ class Canvas {
 public:
 	Canvas (SDL_Renderer* rend, SDL_Texture* digits_image, SDL_Texture* pieces_image) {
 		this->rend = rend;
+
+		if (!pieces_image || !digits_image) {
+			messagebox_error("FAILED TO LOAD SPRITES", "Failed to load sprites");
+			exit(1);
+		}
+
 		this->digits_image = digits_image;
 		this->pieces_image = pieces_image;
 	}
