@@ -60,7 +60,7 @@ public:
 					is_white = !is_white;
 				SDL_Rect dst_rect = {x, y, 1, 1};
 				SDL_RenderFillRect(rend, &dst_rect);
-				if (bitboard.bitboard_get({ x, y })) {
+				if (bitboard.get({ x, y })) {
 					SDL_SetRenderDrawColor(rend, 200, 100, 100, 130);
 					SDL_RenderFillRect(rend, &dst_rect);
 				}

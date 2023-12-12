@@ -1,5 +1,5 @@
 
-Position fen_to_position(std::string fen) {
+Position fen_to_position(std::string_view fen) {
 	std::unordered_map<char, piece_type> umap;
 
 	umap['r'] = piece_type::ROOK;

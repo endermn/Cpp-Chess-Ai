@@ -2,15 +2,18 @@
 
 class Bitboard {
 public:
-	uint64_t bitboard = 0;
+	uint64_t bits = 0;
 
-	void bitboard_set(board_pos pos) {
+	void set(board_pos pos) {
 		if(!pos.is_valid())
-			throw std::runtime_error("bitboard_set: Invalid position");
-		bitboard |= 1ULL << (pos.y * 8 + pos.x);
+			throw std::runtime_error("bits_set: Invalid position");
+		bits |= 1ULL << (pos.y * 8 + pos.x);
 	}
 
-	bool bitboard_get(board_pos pos) {
-		return bitboard & (1ULL << (pos.y * 8 + pos.x));
+	bool get(board_pos pos) {
+		return bits & (1ULL << (pos.y * 8 + pos.x));
+	}
+	friend Bitboard operator| (Bitboard a, Bitboard b) {
+		return Bitboard{a.bits | b.bits};
 	}
 };

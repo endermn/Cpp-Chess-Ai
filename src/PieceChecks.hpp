@@ -37,7 +37,7 @@ public:
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value())
 					continue;
-				mobility_score[int(board[y][x].value().color)] += std::popcount(get_moves({x, y}));
+				mobility_score[int(board[y][x].value().color)] += std::popcount(get_moves({x, y}).bits);
 			}
 		}
 		return mobility_score;
@@ -81,11 +81,11 @@ public:
 					king_pos = board_pos{ x, y };
 
 				if (board[y][x].value().color != color)
-					targetted_squares.bitboard |= get_moves({ x, y });
+					targetted_squares.bits |= get_moves({ x, y }).bits;
 			}
 		}
 		if(!king_pos.has_value())
 			return false;
-		return targetted_squares.bitboard_get(king_pos.value());
+		return targetted_squares.get(king_pos.value());
 	}
 };

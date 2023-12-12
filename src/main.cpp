@@ -32,11 +32,11 @@ int main(int argc, char* argv[]) {
 
 // Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	// thread_sync sync = {.position = fen_to_position("4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0")};
-	thread_sync sync = {.position = fen_to_position("r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0")};
-	// thread_sync sync = {.position = fen_to_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")};
+	//
+	constexpr std::string_view fen = "8/8/8/8/8/kp6/8/3K4 w - - 0 1";
+	piece_color engine_color = piece_color::BLACK;
 
-	piece_color engine_color = piece_color::WHITE;
+	thread_sync sync = {.position = fen_to_position(fen)};
 	
 	seconds time_black{10 * 60s};
 	seconds time_white{10 * 60s};
@@ -85,10 +85,10 @@ int main(int argc, char* argv[]) {
 					optional<piece> src_piece = sync.position.board[pos.y][pos.x];
 					if (src_piece.has_value() && sync.position.turn == src_piece->color) {
 						src_pos = pos;
-						possible_moves.bitboard = sync.position.get_moves(pos);
+						possible_moves.bits = sync.position.get_moves(pos).bits;
 					}
 				} else {
-					if (possible_moves.bitboard_get(pos)) {
+					if (possible_moves.get(pos)) {
 						std::lock_guard<std::mutex> lock(sync.mutex);
 						old_positions.push_back({sync.position, time_black, time_white});
 						sync.position.make_move(pos, src_pos.value(), win);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 						play_engine(sync, ai_move_thread);
 					}
 
-					possible_moves.bitboard = 0;
+					possible_moves.bits = 0;
 					src_pos = std::nullopt;
 				}
 			} break;
@@ -105,13 +105,13 @@ int main(int argc, char* argv[]) {
 				case SDLK_LEFT:
 					if(!sync.is_thinking && old_positions.size() > 0) {
 						new_positions.push_back({sync.position, time_black, time_white});
-						rollback_position(old_positions, possible_moves.bitboard, src_pos, sync, time_black, time_white);
+						rollback_position(old_positions, possible_moves.bits, src_pos, sync, time_black, time_white);
 					}
 					break;
 				case SDLK_RIGHT:
 					if (event.key.keysym.sym == SDLK_RIGHT && !sync.is_thinking && new_positions.size() > 0){
 						old_positions.push_back({sync.position, time_black, time_white});
-						rollback_position(new_positions, possible_moves.bitboard, src_pos, sync, time_black, time_white);
+						rollback_position(new_positions, possible_moves.bits, src_pos, sync, time_black, time_white);
 					}
 					break;
 				case SDLK_F11:

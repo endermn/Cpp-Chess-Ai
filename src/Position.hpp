@@ -76,11 +76,11 @@ public:
 				if (old_best_moves.size() > 0 && duration_cast<seconds>(steady_clock::now() - then).count() >= 1)
 					return true;
 
-				uint64_t move_bitboard = get_moves(board_pos{ x, y });
+				Bitboard move_bitboard = get_moves(board_pos{ x, y });
 
-				while (move_bitboard != 0) {
-					unsigned long index = std::countr_zero(move_bitboard);
-					move_bitboard &= move_bitboard - 1;
+				while (move_bitboard.bits != 0) {
+					unsigned long index = std::countr_zero(move_bitboard.bits);
+					move_bitboard.bits &= move_bitboard.bits - 1;
 					board_pos dst_pos = {int(index) % 8, int(index) / 8 };
 					Position new_position = *this;
 					new_position.make_move(dst_pos, { x, y }, nullptr);
@@ -167,10 +167,10 @@ public:
 				if (!board[y][x].has_value())
 					continue;
 
-				uint64_t move_bitboard = get_moves(board_pos{ x, y });
-				while (move_bitboard != 0) {
-					unsigned long index = std::countr_zero(move_bitboard);
-					move_bitboard &= move_bitboard - 1;
+				Bitboard move_bitboard = get_moves(board_pos{ x, y });
+				while (move_bitboard.bits != 0) {
+					unsigned long index = std::countr_zero(move_bitboard.bits);
+					move_bitboard.bits &= move_bitboard.bits - 1;
 					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 					if (board[dst_pos.y][dst_pos.x].has_value())
 						captures.push_back({ dst_pos, { x, y }, true });
@@ -197,10 +197,10 @@ public:
 				if (!board[y][x].has_value() || board[y][x]->color != turn)
 					continue;
 
-				uint64_t move_bitboard = get_moves(board_pos{ x, y });
-				while (move_bitboard != 0) {
-					unsigned long index = std::countr_zero(move_bitboard);
-					move_bitboard &= move_bitboard - 1;
+				Bitboard move_bitboard = get_moves(board_pos{ x, y });
+				while (move_bitboard.bits != 0) {
+					unsigned long index = std::countr_zero(move_bitboard.bits);
+					move_bitboard.bits &= move_bitboard.bits - 1;
 					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 
 					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
