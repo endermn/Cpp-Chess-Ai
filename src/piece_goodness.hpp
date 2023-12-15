@@ -1,3 +1,5 @@
+#include "transposition_table.hpp"
+
 // PIECE SQUARE TABLES 
 static constexpr float piece_goodnesses[2][6][8][8] = {
 	{

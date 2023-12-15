@@ -1,13 +1,3 @@
-#include "common.hpp"
-#include "pieces.hpp"
-#include "Bitboard.hpp"
-#include "draw.hpp"
-#include "transposition_table.hpp"
-#include "piece_goodness.hpp"
-#include "PieceMoves.hpp"
-#include "PieceChecks.hpp"
-#include "Position.hpp"
-#include "fen.hpp"
 #include "threads.hpp"
 
 using namespace std::literals;
@@ -16,10 +6,8 @@ using namespace std::literals;
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
-
 	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
 	SDL_ShowWindow(win);
-
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC );
 	
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
@@ -29,7 +17,7 @@ int main(int argc, char* argv[]) {
 	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 	SDL_RenderSetLogicalSize(rend, 10, 8);
 	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
-
+    
 // Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	//

@@ -1,4 +1,4 @@
-
+#include "PieceMoves.hpp"
 TranspositionTable transposition_table;
 
 class PieceChecks : public PieceMoves{
@@ -15,7 +15,7 @@ public:
 		return piece_values[int(type)];
 	}
 
-	game_phase get_game_phase() const{
+	game_phase get_game_phase() const {
 		int total_major_pieces = 0;
 
 		for (int y = 0; y < board.size(); y++) 
@@ -43,7 +43,7 @@ public:
 		return mobility_score;
 	}
 
-	uint64_t hash () const{
+	uint64_t hash() const {
 		uint64_t current_hash = turn == piece_color::WHITE ? 2103981289031988 : 0;
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {

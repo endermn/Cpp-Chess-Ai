@@ -1,4 +1,4 @@
-
+#include "pieces.hpp"
 
 class Bitboard {
 public:

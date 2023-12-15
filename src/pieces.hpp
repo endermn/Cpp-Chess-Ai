@@ -1,3 +1,5 @@
+#include "common.hpp"
+
 struct piece {
 	piece_color color;
 	piece_type type;

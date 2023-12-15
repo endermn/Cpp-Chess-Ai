@@ -1,3 +1,6 @@
+#include "piece_goodness.hpp"
+
+
 class PieceMoves {
 public:
 	array<array<optional<piece>, 8>, 8> board;

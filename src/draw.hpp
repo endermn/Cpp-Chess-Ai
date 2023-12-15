@@ -1,3 +1,4 @@
+#include "Bitboard.hpp"
 
 
 class Canvas {

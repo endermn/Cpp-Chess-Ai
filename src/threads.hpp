@@ -1,3 +1,6 @@
+#include "fen.hpp"
+
+
 struct thread_sync {
 	Position position;
 	std::mutex mutex;	

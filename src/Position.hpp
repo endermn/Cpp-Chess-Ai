@@ -1,7 +1,8 @@
+#include "PieceChecks.hpp"
 
 class Position : public PieceChecks {
 public:
-	// Returns an evaluation of the current chess position
+	// Returns the absolute evaluation of the current chess position as a floating point
 	float evaluate() const{
 		float score = 0;
 
@@ -13,7 +14,7 @@ public:
 			for (int x = 0; x < board[y].size(); x++) {
 				if (!board[y][x].has_value())
 					continue;
-
+                
 				piece src_piece = board[y][x].value();
 				int color_value = get_color_value(src_piece.color);
 

@@ -1,3 +1,6 @@
+#include "draw.hpp"
+
+
 struct zobrist_value {
 	float evaluation;
 	int depth;

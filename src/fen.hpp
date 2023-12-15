@@ -1,7 +1,8 @@
+#include "Position.hpp"
+
 
 Position fen_to_position(std::string_view fen) {
 	std::unordered_map<char, piece_type> umap;
-
 	umap['r'] = piece_type::ROOK;
 	umap['n'] = piece_type::KNIGHT;
 	umap['b'] = piece_type::BISHOP;
