@@ -57,12 +57,9 @@ public:
 		if(en_passant.has_value())
 			current_hash ^= transposition_table.en_passant_zobrist[en_passant.value()];
 
-		for (int i = 0; i < 64; i++) {
-			int y = i / 8;
-			int x = i % 8;
-
-			if(can_castle[y][x])
-				current_hash ^= transposition_table.castle_zobrist[y][x];
+		for (int i = 0; i < 4; i++) {
+			if(can_castle[i / 2][i % 2])
+				current_hash ^= transposition_table.castle_zobrist[i / 2][i % 2];
 		}
 
 		return current_hash;

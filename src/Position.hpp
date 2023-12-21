@@ -71,39 +71,37 @@ public:
 		std::vector<move> best_moves;
 		size_t best_moves_size = 0;
 		float max = INT_MIN;
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value() || board[y][x].value().color != turn)
+		for (int i = 0; i < 64; i++) {
+			int y = i / 8;
+			int x = i % 8;
+			if (!board[y][x].has_value() || board[y][x].value().color != turn)
+				continue;
+			if (old_best_moves.size() > 0 && duration_cast<seconds>(steady_clock::now() - then).count() >= 1)
+				return true;
+
+			Bitboard move_bitboard = get_moves(board_pos{ x, y });
+
+			while (move_bitboard.bits != 0) {
+				unsigned long index = std::countr_zero(move_bitboard.bits);
+				move_bitboard.bits &= move_bitboard.bits - 1;
+				board_pos dst_pos = {int(index) % 8, int(index) / 8 };
+				Position new_position = *this;
+				new_position.make_move(dst_pos, { x, y }, nullptr);
+	
+				if (new_position.is_under_check(turn))
 					continue;
-				if (old_best_moves.size() > 0 && duration_cast<seconds>(steady_clock::now() - then).count() >= 1)
-					return true;
 
-				Bitboard move_bitboard = get_moves(board_pos{ x, y });
+				float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
+				std::cout << depth << '\n';
+				
+				if (evaluation > max) {
+					max = evaluation;
+					best_moves.clear();
+				}
 
-				while (move_bitboard.bits != 0) {
-					unsigned long index = std::countr_zero(move_bitboard.bits);
-					move_bitboard.bits &= move_bitboard.bits - 1;
-					board_pos dst_pos = {int(index) % 8, int(index) / 8 };
-					Position new_position = *this;
-					new_position.make_move(dst_pos, { x, y }, nullptr);
-		
-					if (new_position.is_under_check(turn))
-						continue;
-
-					float evaluation = -new_position.negamax(-1e9, 1e9, depth, piece_color(!bool(turn)));
-					std::cout << depth << '\n';
-					
-					if (evaluation > max) {
-						max = evaluation;
-						best_moves.clear();
-					}
-
-					if(evaluation >= max) {
-						best_moves.push_back({ dst_pos, {x, y} });
-						best_moves_size = std::max(best_moves.size(), best_moves_size);
-					}
-
-
+				if(evaluation >= max) {
+					best_moves.push_back({ dst_pos, {x, y} });
+					best_moves_size = std::max(best_moves.size(), best_moves_size);
 				}
 			}
 		}
@@ -142,7 +140,7 @@ public:
 			}
 
 			if (move_piece_type == piece_type::PAWN && (current_move.dst_pos.y == 0 || current_move.dst_pos.y == 7)) {
-				move_score += get_piece_value(piece_type::QUEEN);
+				move_score += 10 * get_piece_value(piece_type::QUEEN);
 			}
 			current_move.score = move_score;
 		}

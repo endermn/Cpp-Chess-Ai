@@ -14,7 +14,7 @@ private:
 		piece_color src_color = board[src_pos.y][src_pos.x].value().color;
 		for (board_pos i : piece_offsets::KING_QUEEN) {
 			board_pos dst = { i.x + src_pos.x , i.y + src_pos.y };
-			if (dst.is_valid() && (!board[dst.y][dst.x].has_value() || board[dst.y][dst.x].value().color != src_color))
+			if (dst.is_valid() && (!board[dst.y][dst.x].has_value() || board[dst.y][dst.x]->color != src_color))
 				bitboard.set(dst);
 		}
 		if (can_castle[int(src_color)][int(castle_side::SHORT)]) {
