@@ -10,48 +10,49 @@ public:
 
 		std::array<optional<board_pos>, 2> king_positions = {std::nullopt, std::nullopt};
 
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value())
-					continue;
-                
-				piece src_piece = board[y][x].value();
-				int color_value = get_color_value(src_piece.color);
+		for (int i = 0; i < 64; i++) {
+			int y = i / 8;
+			int x = i % 8;
 
-				switch(src_piece.type) {
-				case piece_type::KING:
-					for (int i = -1; i < 2; i++) {
-						board_pos dst_pos = {.x = x + i, .y = y - color_value};
-						if(!dst_pos.is_valid())
-							continue;
-						if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->color == src_piece.color)
-							score += color_value * 0.1;
-						if (!board[dst_pos.y][x].has_value() || board[dst_pos.y][x]->color != src_piece.color)
-							score -= color_value * 0.1;
-					}
-					king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
-					break;
-				case piece_type::PAWN:
-					if(x < 7 && x > 0) {
-						if(!(board[y - color_value][x + 1]->type == piece_type::PAWN ||
-						board[y - color_value][x - 1]->type == piece_type::PAWN)) 
-							score -= color_value * 0.01f;
-						else 
-							score += color_value * 0.01f;
-					}
-					if (board[y - color_value][x]->type == piece_type::PAWN  && board[y - color_value][x]->color == board[y][x]->color)
-						score += color_value * 0.01f;
-					break;
-				default:
-					break;
+			if (!board[y][x].has_value())
+				continue;
+			
+			piece src_piece = board[y][x].value();
+			int color_value = get_color_value(src_piece.color);
+
+			switch(src_piece.type) {
+			case piece_type::KING:
+				for (int i = -1; i < 2; i++) {
+					board_pos dst_pos = {.x = x + i, .y = y - color_value};
+					if(!dst_pos.is_valid())
+						continue;
+					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->color == src_piece.color)
+						score += color_value * 0.1;
+					if (!board[dst_pos.y][x].has_value() || board[dst_pos.y][x]->color != src_piece.color)
+						score -= color_value * 0.1;
 				}
-
-				int goodness_y = src_piece.color == piece_color::BLACK ? 7 - y : y;
-				float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME][int(src_piece.type)][goodness_y][x];
-				score += color_value * 0.01 * piece_goodness;
-				
-				score += color_value * get_piece_value(src_piece.type);
+				king_positions[src_piece.color == piece_color::BLACK ? 1 : 0] = board_pos{ x, y };
+				break;
+			case piece_type::PAWN:
+				if(x < 7 && x > 0) {
+					if(!(board[y - color_value][x + 1]->type == piece_type::PAWN ||
+					board[y - color_value][x - 1]->type == piece_type::PAWN)) 
+						score -= color_value * 0.01f;
+					else 
+						score += color_value * 0.01f;
+				}
+				if (board[y - color_value][x]->type == piece_type::PAWN  && board[y - color_value][x]->color == board[y][x]->color)
+					score += color_value * 0.01f;
+				break;
+			default:
+				break;
 			}
+
+			int goodness_y = src_piece.color == piece_color::BLACK ? 7 - y : y;
+			float piece_goodness = piece_goodnesses[phase == game_phase::ENDGAME][int(src_piece.type)][goodness_y][x];
+			score += color_value * 0.01 * piece_goodness;
+			
+			score += color_value * get_piece_value(src_piece.type);
 		}
 
 
@@ -163,19 +164,19 @@ public:
 			return alpha;
 		std::vector<move> captures;
 
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value())
-					continue;
+		for (int i = 0; i < 64; i++) {
+			int y = i / 8;
+			int x = i % 8;
+			if (!board[y][x].has_value())
+				continue;
 
-				Bitboard move_bitboard = get_moves(board_pos{ x, y });
-				while (move_bitboard.bits != 0) {
-					unsigned long index = std::countr_zero(move_bitboard.bits);
-					move_bitboard.bits &= move_bitboard.bits - 1;
-					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
-					if (board[dst_pos.y][dst_pos.x].has_value())
-						captures.push_back({ dst_pos, { x, y }, true });
-				}
+			Bitboard move_bitboard = get_moves(board_pos{ x, y });
+			while (move_bitboard.bits != 0) {
+				unsigned long index = std::countr_zero(move_bitboard.bits);
+				move_bitboard.bits &= move_bitboard.bits - 1;
+				board_pos dst_pos = { int(index) % 8, int(index) / 8 };
+				if (board[dst_pos.y][dst_pos.x].has_value())
+					captures.push_back({ dst_pos, { x, y }, true });
 			}
 		}
 
@@ -193,28 +194,27 @@ public:
 	}
 
 	float evaluate_negamax (float alpha, float beta, int depth) {
-		for (int y = 0; y < board.size(); y++) {
-			for (int x = 0; x < board[y].size(); x++) {
-				if (!board[y][x].has_value() || board[y][x]->color != turn)
-					continue;
+		for (int i = 0; i < 64; i++) {
+			int y = i / 8;
+			int x = i % 8;
+			if (!board[y][x].has_value() || board[y][x]->color != turn)
+				continue;
 
-				Bitboard move_bitboard = get_moves(board_pos{ x, y });
-				while (move_bitboard.bits != 0) {
-					unsigned long index = std::countr_zero(move_bitboard.bits);
-					move_bitboard.bits &= move_bitboard.bits - 1;
-					board_pos dst_pos = { int(index) % 8, int(index) / 8 };
+			Bitboard move_bitboard = get_moves(board_pos{ x, y });
+			while (move_bitboard.bits != 0) {
+				unsigned long index = std::countr_zero(move_bitboard.bits);
+				move_bitboard.bits &= move_bitboard.bits - 1;
+				board_pos dst_pos = { int(index) % 8, int(index) / 8 };
 
-					if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
-						return 1'000'000.f + depth * 1'000'000.f;
+				if (board[dst_pos.y][dst_pos.x].has_value() && board[dst_pos.y][dst_pos.x]->type == piece_type::KING)
+					return 1'000'000.f + depth * 1'000'000.f;
 
-					Position new_position = *this;
-					new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
-					float score = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
-					if (score >= beta)
-						return beta;
-					alpha = std::max(alpha, score);
-
-				}
+				Position new_position = *this;
+				new_position.make_move(dst_pos, board_pos{x, y}, nullptr);
+				float score = -new_position.negamax(-beta, -alpha, depth - 1, piece_color(!bool(turn)));
+				if (score >= beta)
+					return beta;
+				alpha = std::max(alpha, score);
 			}
 		}
 
