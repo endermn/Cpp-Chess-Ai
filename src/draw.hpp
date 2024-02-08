@@ -2,7 +2,6 @@
 
 
 class Canvas {
-
 	SDL_Renderer* rend;
 	SDL_Texture* digits_image;
 	SDL_Texture* pieces_image;
@@ -71,10 +70,6 @@ public:
 				SDL_RenderCopy(rend, pieces_image, &src_rect, &dst_rect);
 			}
 		}
-
-
-		
-
 
 		SDL_SetRenderDrawColor(rend, 173, 235, 173, 255);
 		SDL_Rect black_rect = {8, turn == piece_color::BLACK ? 0 : 7, 2, 1};

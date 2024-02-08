@@ -1,4 +1,5 @@
 #include "transposition_table.hpp"
+#include <SDL2/SDL_video.h>
 
 // PIECE SQUARE TABLES 
 static constexpr float piece_goodnesses[2][6][8][8] = {

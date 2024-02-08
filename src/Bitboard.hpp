@@ -9,7 +9,6 @@ public:
 			throw std::runtime_error("bits_set: Invalid position");
 		bits |= 1ULL << (pos.y * 8 + pos.x);
 	}
-
 	bool get(board_pos pos) {
 		return bits & (1ULL << (pos.y * 8 + pos.x));
 	}

@@ -1,7 +1,7 @@
 #include "PieceMoves.hpp"
 TranspositionTable transposition_table;
 
-class PieceChecks : public PieceMoves{
+class PieceChecks : public PieceMoves {
 public:
 	static float get_piece_value(piece_type type) {
 		float piece_values[6] = {

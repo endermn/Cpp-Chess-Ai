@@ -4,20 +4,35 @@ using namespace std::literals;
 
 
 int main(int argc, char* argv[]) {
-	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	IMG_Init(IMG_INIT_PNG);
-	SDL_Window* win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
+	SDL_Window* win = SDL_CreateWindow("Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
 	SDL_ShowWindow(win);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC );
 	
+	SDL_AudioSpec audio_spec;
+	uint8_t* audio_buffer;
+	uint32_t audio_size;
+	
+	SDL_AudioDeviceID audio_device;
+	if(SDL_LoadWAV("sprites/move.wav", &audio_spec, &audio_buffer, &audio_size)) {
+		audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, &audio_spec, 0);
+		SDL_PauseAudioDevice(audio_device, 0);
+	} else { 
+		std::cout << "could not load wav \n";
+		audio_device = 0;
+	}
+	if(audio_device == 0) 	
+		std::cout << "failed to open audio device \n";
+
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
 
 	SDL_SetTextureScaleMode(digits_image, SDL_ScaleModeBest);
-	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
-	SDL_RenderSetLogicalSize(rend, 10, 8);
 	SDL_SetTextureScaleMode(pieces_image, SDL_ScaleModeLinear);
-    
+
+	SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
+	SDL_RenderSetLogicalSize(rend, 10, 8);   
 // Test Fens:
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	//
@@ -40,7 +55,7 @@ int main(int argc, char* argv[]) {
 	optional<board_pos> src_pos;
 
 	if(sync.position.turn == engine_color)
-		play_engine(sync, ai_move_thread);
+		play_engine(sync, ai_move_thread, audio_device, audio_buffer, audio_size);
 
 	Canvas canvas{rend, digits_image, pieces_image};
 
@@ -61,10 +76,15 @@ int main(int argc, char* argv[]) {
 			case SDL_QUIT:
 				exit(0);
 			case SDL_MOUSEBUTTONDOWN: {
-				if (event.button.button != SDL_BUTTON_LEFT || sync.is_thinking || sync.position.turn == engine_color)
+	
+				if (event.button.button != SDL_BUTTON_LEFT || sync.position.turn == engine_color)
+					break;
+
+				if (sync.is_thinking)
 					break;
 
 				board_pos pos = {event.button.x, event.button.y};
+
 				if(!pos.is_valid())
 					break;
 				
@@ -75,18 +95,23 @@ int main(int argc, char* argv[]) {
 						src_pos = pos;
 						possible_moves.bits = sync.position.get_moves(pos).bits;
 					}
-				} else {
-					if (possible_moves.get(pos)) {
-						std::lock_guard<std::mutex> lock(sync.mutex);
-						old_positions.push_back({sync.position, time_black, time_white});
-						sync.position.make_move(pos, src_pos.value(), win);
-						new_positions.clear();
-						play_engine(sync, ai_move_thread);
-					}
-
-					possible_moves.bits = 0;
-					src_pos = std::nullopt;
+					break;
+				} 
+				if (possible_moves.get(pos)) {
+					std::lock_guard<std::mutex> lock(sync.mutex);
+					old_positions.push_back({sync.position, time_black, time_white});
+					if(audio_device != 0)
+						SDL_QueueAudio(audio_device, audio_buffer, audio_size);
+					sync.position.make_move(pos, src_pos.value(), win);
+					new_positions.clear();
+					play_engine(sync, ai_move_thread, audio_device, audio_buffer, audio_size);
+					// if(audio_device != 0)
+					// 	SDL_QueueAudio(audio_device, audio_buffer, audio_size);
 				}
+
+				possible_moves.bits = 0;
+				src_pos = std::nullopt;
+		
 			} break;
 			case SDL_KEYDOWN:
 				switch(event.key.keysym.sym) {
