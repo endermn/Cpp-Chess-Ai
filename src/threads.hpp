@@ -3,9 +3,8 @@
 
 struct thread_sync {
 	Position position;
-	SDL_AudioDeviceID audio_device;
-	uint8_t* audio_buffer;
-	uint32_t audio_size;
+	audio_file move_sound;
+	audio_file capture_sound;
 	std::mutex mutex;	
 	std::atomic<bool> is_thinking;
 };
@@ -22,7 +21,11 @@ void engine_thread_func(thread_sync *sync) {
 
 	move best_move = sync->position.get_best_moves();
 	std::lock_guard<std::mutex> lock(sync->mutex);
-	SDL_QueueAudio(sync->audio_device, sync->audio_buffer, sync->audio_size);
+	if(sync->position.board[best_move.dst_pos.y][best_move.dst_pos.x].has_value())
+		SDL_QueueAudio(sync->capture_sound.device, sync->capture_sound.buffer, sync->capture_sound.size);
+	else
+		SDL_QueueAudio(sync->move_sound.device, sync->move_sound.buffer, sync->move_sound.size);
+
 	sync->position.make_move(best_move.dst_pos, best_move.src_pos, nullptr);
 	sync->is_thinking = false;
 	
@@ -48,12 +51,11 @@ void rollback_position(
 	}
 }
 
-void play_engine(thread_sync& sync, std::thread& ai_move_thread, auto audio_device, auto audio_buffer, auto audio_size) {
+void play_engine(thread_sync& sync, std::thread& ai_move_thread, audio_file move_sound, audio_file capture_sound) {
 	// ai_thread_func(&sync);
 	sync.is_thinking = true;
-	sync.audio_device = audio_device;
-	sync.audio_buffer = audio_buffer;
-	sync.audio_size = audio_size;
+	sync.move_sound = move_sound;
+	sync.capture_sound = capture_sound;
 	std::cout << "transposition size: " << transposition_table.table.size() << '\n';
 	std::cout << "thinking.. \n";
 	ai_move_thread = std::thread(engine_thread_func, &sync);

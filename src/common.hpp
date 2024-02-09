@@ -53,6 +53,14 @@ enum class piece_type : uint8_t {
 	PAWN,
 };
 
+
+struct audio_file {
+	SDL_AudioSpec spec;
+	uint8_t* buffer;
+	uint32_t size;
+	SDL_AudioDeviceID device;
+};
+
 struct board_pos {
 	int x;
 	int y;

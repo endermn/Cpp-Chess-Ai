@@ -2,6 +2,18 @@
 
 using namespace std::literals;
 
+void load_audio(const char* path, audio_file* file) {
+	if(SDL_LoadWAV(path , &file->spec, &file->buffer, &file->size)) {
+		file->device = SDL_OpenAudioDevice(NULL, 0, &file->spec, &file->spec, 0);
+		SDL_PauseAudioDevice(file->device, 0);
+	} else { 
+		std::cout << "could not load wav \n";
+		file->device = 0;
+	}
+
+	if(file->device == 0) 	
+		std::cout << "failed to open audio device \n";
+}
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -9,21 +21,12 @@ int main(int argc, char* argv[]) {
 	SDL_Window* win = SDL_CreateWindow("Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SQUARE_SIZE * 10, SQUARE_SIZE * 8, SDL_WINDOW_RESIZABLE);
 	SDL_ShowWindow(win);
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC );
-	
-	SDL_AudioSpec audio_spec;
-	uint8_t* audio_buffer;
-	uint32_t audio_size;
-	
-	SDL_AudioDeviceID audio_device;
-	if(SDL_LoadWAV("sprites/move.wav", &audio_spec, &audio_buffer, &audio_size)) {
-		audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, &audio_spec, 0);
-		SDL_PauseAudioDevice(audio_device, 0);
-	} else { 
-		std::cout << "could not load wav \n";
-		audio_device = 0;
-	}
-	if(audio_device == 0) 	
-		std::cout << "failed to open audio device \n";
+
+	audio_file move_sound = audio_file{};
+	audio_file capture_sound = audio_file{};
+
+	load_audio("sprites/move.wav", &move_sound);
+	load_audio("sprites/capture.wav", &capture_sound);
 
 	SDL_Texture* pieces_image = IMG_LoadTexture(rend, "./sprites/pieces.png");
 	SDL_Texture* digits_image = IMG_LoadTexture(rend, "./sprites/digits.png");
@@ -55,7 +58,7 @@ int main(int argc, char* argv[]) {
 	optional<board_pos> src_pos;
 
 	if(sync.position.turn == engine_color)
-		play_engine(sync, ai_move_thread, audio_device, audio_buffer, audio_size);
+		play_engine(sync, ai_move_thread, move_sound, capture_sound);
 
 	Canvas canvas{rend, digits_image, pieces_image};
 
@@ -100,11 +103,13 @@ int main(int argc, char* argv[]) {
 				if (possible_moves.get(pos)) {
 					std::lock_guard<std::mutex> lock(sync.mutex);
 					old_positions.push_back({sync.position, time_black, time_white});
-					if(audio_device != 0)
-						SDL_QueueAudio(audio_device, audio_buffer, audio_size);
+					if(sync.position.board[pos.y][pos.x].has_value())
+						SDL_QueueAudio(capture_sound.device, capture_sound.buffer, capture_sound.size);
+					else
+						SDL_QueueAudio(move_sound.device, move_sound.buffer, move_sound.size);
 					sync.position.make_move(pos, src_pos.value(), win);
 					new_positions.clear();
-					play_engine(sync, ai_move_thread, audio_device, audio_buffer, audio_size);
+					play_engine(sync, ai_move_thread, move_sound, capture_sound);
 					// if(audio_device != 0)
 					// 	SDL_QueueAudio(audio_device, audio_buffer, audio_size);
 				}

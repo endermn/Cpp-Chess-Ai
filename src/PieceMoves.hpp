@@ -37,17 +37,20 @@ private:
 
 	Bitboard bishop_moves(board_pos src_pos) const {
 		Bitboard bitboard;
-		for (board_pos i : piece_offsets::BISHOP)
+		for (board_pos i : piece_offsets::BISHOP) 
 			for (int j = 1; j < 8; j++) {
 				board_pos diagonal = { src_pos.x + j * i.x , src_pos.y + j * i.y };
 				if (!diagonal.is_valid()) 
 					break;
-				if (board[diagonal.y][diagonal.x].has_value()) {
-					if (board[diagonal.y][diagonal.x].value().color != board[src_pos.y][src_pos.x].value().color)
-						bitboard.set(diagonal);
-					break;
+
+				if (!board[diagonal.y][diagonal.x].has_value()) {
+					bitboard.set(diagonal);
+					continue;
 				}
-				bitboard.set(diagonal);
+
+				if (board[diagonal.y][diagonal.x].value().color != board[src_pos.y][src_pos.x].value().color)
+					bitboard.set(diagonal);
+				break;
 			}
 		return bitboard;
 	}
