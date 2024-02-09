@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	//
 	constexpr std::string_view fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	piece_color engine_color = piece_color::WHITE;
+	piece_color engine_color = piece_color::BLACK;
 
 	thread_sync sync = {.position = fen_to_position(fen)};
 	
