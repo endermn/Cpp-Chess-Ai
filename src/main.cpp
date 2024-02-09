@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 	// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	//
 	constexpr std::string_view fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	piece_color engine_color = piece_color::BLACK;
+	piece_color engine_color = piece_color::WHITE;
 
 	thread_sync sync = {.position = fen_to_position(fen)};
 	
@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 				} 
+
 				if (possible_moves.get(pos)) {
 					std::lock_guard<std::mutex> lock(sync.mutex);
 					old_positions.push_back({sync.position, time_black, time_white});
@@ -131,6 +132,25 @@ int main(int argc, char* argv[]) {
 						old_positions.push_back({sync.position, time_black, time_white});
 						rollback_position(new_positions, possible_moves.bits, src_pos, sync, time_black, time_white);
 					}
+					break;
+				case SDLK_F5:
+
+					sync.position = fen_to_position(fen);
+					engine_color = piece_color(!bool(engine_color));
+
+					time_black = {10 * 60s};
+					time_white = {10 * 60s};
+
+					now = steady_clock::now();
+
+					old_positions = {};
+					new_positions = {};
+
+					src_pos = std::nullopt;
+
+					possible_moves = {};
+					if(sync.position.turn == engine_color)
+						play_engine(sync, ai_move_thread, move_sound, capture_sound);
 					break;
 				case SDLK_F11:
 					auto flag = SDL_GetWindowFlags(win);
