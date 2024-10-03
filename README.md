@@ -4,14 +4,16 @@
 ## Files
 - [README.md](#files), the file you're currently reading
 - [Copying.txt](Copying.txt), a text file containing the GNU General Public License version 3.
-- [src](src), a subdirectory containing the full source code 
+- [src](src), a subdirectory containing the full source code
 ## Requirements
+- clang++ >= 15.0.0
 - Boost >= 1.82.0
 - SDL2 >= 2.26.3
 - SDL2_Image
 - 64/32-bit system
-- Linux
-## Compiling Bish on Linux
+- Unix based system
+All the Requirements are the ones I've used, it might work with older versions but not guaranteed
+## Compiling Bish on Unix
 Make sure the [required packages](#requirements) are installed
 
 Run `./build.sh` in this directory
